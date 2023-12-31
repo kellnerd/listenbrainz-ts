@@ -1,4 +1,4 @@
-import { ListenSubmission } from "./listen.ts";
+import { ListenSubmission, Track } from "./listen.ts";
 import { delay } from "https://deno.land/std@0.210.0/async/delay.ts";
 
 export interface ClientOptions {
@@ -21,6 +21,30 @@ export class ListenBrainzClient {
       "Content-Type": "application/json",
     };
     this.#submissionUrl = new URL("/1/submit-listens", apiUrl);
+  }
+
+  /**
+   * Submits a listen for the given track.
+   *
+   * @param listenedAt - Playback start time of the track (Unix time in seconds).
+   * Defaults to the current time if not specified.
+   */
+  listen(track: Track, listenedAt = now()) {
+    return this.submitListens({
+      listen_type: "single",
+      payload: [{
+        listened_at: listenedAt,
+        track_metadata: track,
+      }],
+    });
+  }
+
+  /** Submits a playing now notification for the given track. */
+  playingNow(track: Track) {
+    return this.submitListens({
+      listen_type: "playing_now",
+      payload: [{ track_metadata: track }],
+    });
   }
 
   /** Submits the given listen data. */
@@ -53,4 +77,9 @@ export class ListenBrainzClient {
   #headers: HeadersInit;
   #rateLimitDelay = Promise.resolve();
   #submissionUrl: URL;
+}
+
+/** Returns the current time in Unix seconds. */
+function now(): number {
+  return Math.floor(Date.now() / 1000);
 }
