@@ -13,6 +13,8 @@ In order to submit listens, you have to specify a user token which you can obtai
 The following example instantiates a ListenBrainz client with a token from an environment variable and submits a [playing now] notification for a track:
 
 ```ts
+import { ListenBrainzClient } from "https://deno.land/x/listenbrainz@v0.1.1/client.ts";
+
 const client = new ListenBrainzClient({ userToken: Deno.env.get("LB_TOKEN") });
 await client.playingNow({ artist_name: "John Doe", track_name: "Love Song" });
 ```
