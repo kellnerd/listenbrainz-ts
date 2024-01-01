@@ -7,6 +7,8 @@ export interface ClientOptions {
   userToken: string;
   /** Root URL of the ListenBrainz API. Only useful with a custom server. */
   apiUrl?: string;
+  /** Maximum number of times a failed request is repeated. */
+  maxRetries?: number;
 }
 
 /**
@@ -26,7 +28,9 @@ export class ListenBrainzClient {
   constructor({
     userToken,
     apiUrl = "https://api.listenbrainz.org",
+    maxRetries = 1,
   }: ClientOptions) {
+    this.maxRetries = maxRetries;
     this.#headers = {
       "Authorization": `Token ${userToken}`,
       "Content-Type": "application/json",
@@ -60,17 +64,20 @@ export class ListenBrainzClient {
 
   /** Submits the given listening data. */
   submitListens(data: ListenSubmission) {
-    return this.#request(this.#submissionUrl, {
-      method: "POST",
-      headers: this.#headers,
-      body: JSON.stringify(data),
-    });
+    return this.#request(
+      new Request(this.#submissionUrl, {
+        method: "POST",
+        headers: this.#headers,
+        body: JSON.stringify(data),
+      }),
+      this.maxRetries,
+    );
   }
 
-  async #request(...params: Parameters<typeof fetch>): Promise<Response> {
+  async #request(input: Request | URL, retries = 0): Promise<Response> {
     await this.#rateLimitDelay;
 
-    const response = await fetch(...params);
+    const response = await fetch(input);
 
     /** Number of requests remaining in current time window. */
     const remainingRequests = response.headers.get("X-RateLimit-Remaining");
@@ -82,9 +89,15 @@ export class ListenBrainzClient {
       }
     }
 
+    // Repeat if failed for "429: Too Many Requests"
+    if (retries > 0 && response.status === 429) {
+      return this.#request(input, retries - 1);
+    }
+
     return response;
   }
 
+  maxRetries: number;
   #headers: HeadersInit;
   #rateLimitDelay = Promise.resolve();
   #submissionUrl: URL;
