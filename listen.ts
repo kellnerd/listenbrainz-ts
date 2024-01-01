@@ -1,3 +1,4 @@
+/** Metadata of an audio track that was played. */
 export interface Track {
   /** Name of the recording artist. */
   artist_name: string;
@@ -40,8 +41,11 @@ export interface Track {
     spotify_id: string;
     /**
      * List of user-defined folksonomy tags to be associated with this recording.
-     * You may submit up to `MAX_TAGS_PER_LISTEN` tags and each tag may be up to
-     * `MAX_TAG_SIZE` characters large.
+     * You may submit up to [`MAX_TAGS_PER_LISTEN`] tags and each tag may be up
+     * to [`MAX_TAG_SIZE`] characters large.
+     *
+     * [`MAX_TAGS_PER_LISTEN`]: https://listenbrainz.readthedocs.io/en/latest/users/api/core.html#listenbrainz.webserver.views.api_tools.MAX_TAGS_PER_LISTEN
+     * [`MAX_TAG_SIZE`]: https://listenbrainz.readthedocs.io/en/latest/users/api/core.html#listenbrainz.webserver.views.api_tools.MAX_TAG_SIZE
      */
     tags: string[];
     /**
@@ -98,25 +102,43 @@ export interface Track {
   }>;
 }
 
+/**
+ * Event of listening to a certain track at certain time.
+ *
+ * Listens should be submitted for tracks when the user has listened to half the
+ * track or 4 minutes of the track, whichever is lower.
+ * If the user hasn’t listened to 4 minutes or half the track, it doesn’t fully
+ * count as a listen and should not be submitted.
+ */
 export interface Listen {
   /**
    * Integer representing the Unix time when the track was listened to.
    * This should be set to playback start time of the submitted track.
-   * The minimum accepted value for this field is `LISTEN_MINIMUM_TS`.
+   * The minimum accepted value for this field is [`LISTEN_MINIMUM_TS`].
+   *
+   * [`LISTEN_MINIMUM_TS`]: https://listenbrainz.readthedocs.io/en/latest/users/api/core.html#listenbrainz.listenstore.LISTEN_MINIMUM_TS
    */
   listened_at: number;
+  /** Metadata of the track. */
   track_metadata: Track;
 }
 
+/**
+ * Listening data which can be submitted to the ListenBrainz API.
+ *
+ * There are some limitations on the size of a submission.
+ * A request must be less than [`MAX_LISTEN_PAYLOAD_SIZE`] bytes, and you can
+ * only submit up to [`MAX_LISTENS_PER_REQUEST`] listens per request.
+ * Each listen may not exceed [`MAX_LISTEN_SIZE`] bytes in size.
+ *
+ * [`MAX_LISTEN_PAYLOAD_SIZE`]: https://listenbrainz.readthedocs.io/en/latest/users/api/core.html#listenbrainz.webserver.views.api_tools.MAX_LISTEN_PAYLOAD_SIZE
+ * [`MAX_LISTENS_PER_REQUEST`]: https://listenbrainz.readthedocs.io/en/latest/users/api/core.html#listenbrainz.webserver.views.api_tools.MAX_LISTENS_PER_REQUEST
+ * [`MAX_LISTEN_SIZE`]: https://listenbrainz.readthedocs.io/en/latest/users/api/core.html#listenbrainz.webserver.views.api_tools.MAX_LISTEN_SIZE
+ */
 export type ListenSubmission = {
   /**
    * Submit previously saved listens.
-   *
    * Submitting multiple listens in one request is permitted.
-   * There are some limitations on the size of a submission.
-   * A request must be less than `MAX_LISTEN_PAYLOAD_SIZE` bytes, and you can
-   * only submit up to `MAX_LISTENS_PER_REQUEST` listens per request.
-   * Each listen may not exceed `MAX_LISTEN_SIZE` bytes in size.
    */
   listen_type: "import";
   payload: Listen[];

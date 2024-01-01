@@ -1,6 +1,7 @@
 import { ListenSubmission, Track } from "./listen.ts";
 import { delay } from "https://deno.land/std@0.210.0/async/delay.ts";
 
+/** ListenBrainz API client configuration options. */
 export interface ClientOptions {
   /** User token, a unique alphanumeric string linked to a user account. */
   userToken: string;
@@ -10,6 +11,16 @@ export interface ClientOptions {
 
 /**
  * ListenBrainz API client to submit listens.
+ *
+ * You have to specify a user token which you can obtain from your [profile].
+ *
+ * [profile]: https://listenbrainz.org/profile/
+ *
+ * @example
+ * ```ts
+ * const client = new ListenBrainzClient({ userToken: Deno.env.get("LB_TOKEN") });
+ * await client.playingNow({ artist_name: "John Doe", track_name: "Love Song" });
+ * ```
  */
 export class ListenBrainzClient {
   constructor({
@@ -47,7 +58,7 @@ export class ListenBrainzClient {
     });
   }
 
-  /** Submits the given listen data. */
+  /** Submits the given listening data. */
   submitListens(data: ListenSubmission) {
     return this.#request(this.#submissionUrl, {
       method: "POST",
