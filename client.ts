@@ -25,30 +25,28 @@ export interface ClientOptions {
  * ```
  */
 export class ListenBrainzClient {
-  constructor({
-    userToken,
-    apiUrl = "https://api.listenbrainz.org",
-    maxRetries = 1,
-  }: ClientOptions) {
-    this.maxRetries = maxRetries;
+  constructor(options: ClientOptions) {
+    this.maxRetries = options.maxRetries ?? 1;
     this.#headers = {
-      "Authorization": `Token ${userToken}`,
+      "Authorization": `Token ${options.userToken}`,
       "Content-Type": "application/json",
     };
-    this.#submissionUrl = new URL("/1/submit-listens", apiUrl);
+    const apiUrl = options.apiUrl ?? "https://api.listenbrainz.org/";
+    this.#submissionUrl = new URL("1/submit-listens", apiUrl);
   }
 
   /**
    * Submits a listen for the given track.
    *
-   * @param listenedAt - Playback start time of the track (Unix time in seconds).
+   * @param track Metadata of the track.
+   * @param listenedAt Playback start time of the track (Unix time in seconds).
    * Defaults to the current time if not specified.
    */
-  listen(track: Track, listenedAt = now()) {
+  listen(track: Track, listenedAt?: number) {
     return this.submitListens({
       listen_type: "single",
       payload: [{
-        listened_at: listenedAt,
+        listened_at: listenedAt ?? now(),
         track_metadata: track,
       }],
     });
@@ -97,6 +95,7 @@ export class ListenBrainzClient {
     return response;
   }
 
+  /** Maximum number of times a failed request is repeated. */
   maxRetries: number;
   #headers: HeadersInit;
   #rateLimitDelay = Promise.resolve();
