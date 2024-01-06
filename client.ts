@@ -1,4 +1,4 @@
-import { ListenSubmission, Track } from "./listen.ts";
+import type { Listen, ListenSubmission, Track } from "./listen.ts";
 import { delay } from "https://deno.land/std@0.210.0/async/delay.ts";
 
 /** ListenBrainz API client configuration options. */
@@ -33,6 +33,11 @@ export class ListenBrainzClient {
     };
     const apiUrl = options.apiUrl ?? "https://api.listenbrainz.org/";
     this.#submissionUrl = new URL("1/submit-listens", apiUrl);
+  }
+
+  /** Imports the given listens. */
+  import(listens: Listen[]) {
+    return this.submitListens({ listen_type: "import", payload: listens });
   }
 
   /**
