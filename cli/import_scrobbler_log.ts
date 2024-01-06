@@ -1,17 +1,19 @@
 import { ListenBrainzClient } from "../client.ts";
-import { formatListen } from "../listen.ts";
+import { formatListen, type Listen } from "../listen.ts";
 import { chunk } from "../utils.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { parseArgs } from "https://deno.land/std@0.210.0/cli/parse_args.ts";
 
 async function importScrobblerLog(path: string, client: ListenBrainzClient, {
   chunkSize = 100,
+  listenFilter = (listen: Listen) => <boolean> (true),
   preview = false,
 } = {}) {
   const file = await Deno.open(path);
   const input = file.readable.pipeThrough(new TextDecoderStream());
 
-  for await (const listens of chunk(parseScrobblerLog(input), chunkSize)) {
+  for await (let listens of chunk(parseScrobblerLog(input), chunkSize)) {
+    listens = listens.filter(listenFilter);
 
     if (preview) {
       listens.forEach((listen) => console.info(formatListen(listen)));
@@ -33,15 +35,18 @@ if (import.meta.main) {
   }
 
   const client = new ListenBrainzClient({ userToken });
-  const { _: paths, preview } = parseArgs(Deno.args, {
-    boolean: ["preview"],
+  const { _: paths, preview, onlyAlbums } = parseArgs(Deno.args, {
+    boolean: ["preview", "onlyAlbums"],
     string: ["_"],
-    alias: { p: "preview" },
+    alias: { p: "preview", a: "onlyAlbums" },
   });
 
   for (const path of paths) {
     await importScrobblerLog(path, client, {
       preview,
+      listenFilter: onlyAlbums
+        ? (listen) => !!(listen.track_metadata.additional_info?.tracknumber)
+        : undefined,
     });
   }
 }
