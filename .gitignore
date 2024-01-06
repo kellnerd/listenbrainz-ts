@@ -1,0 +1,5 @@
+# dotenv environment variables
+.env
+
+# Deno dependency lock file
+deno.lock
