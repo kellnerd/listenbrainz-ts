@@ -162,3 +162,17 @@ export type ListenSubmission = {
     track_metadata: Track;
   }];
 };
+
+/** Returns a string representation of the given listen (for logging). */
+export function formatListen(listen: Listen): string {
+  const { artist_name, track_name, release_name, additional_info } =
+    listen.track_metadata;
+
+  return [
+    new Date(listen.listened_at * 1000).toLocaleString("en-GB"),
+    artist_name,
+    track_name,
+    release_name ?? "[standalone track]",
+    `#${additional_info?.tracknumber ?? 0}`,
+  ].join(" | ");
+}
