@@ -1,4 +1,5 @@
 import type { Listen, Track } from "../listen.ts";
+import { localTimestampToUtc } from "../timestamp.ts";
 import { CsvParseStream } from "https://deno.land/std@0.210.0/csv/csv_parse_stream.ts";
 
 /**
@@ -32,7 +33,7 @@ export async function* parseScrobblerLog(
       additional_info: {},
     };
     const listen: Listen = {
-      listened_at: parseInt(scrobble.timestamp),
+      listened_at: localTimestampToUtc(parseInt(scrobble.timestamp)),
       track_metadata: track,
     };
 
