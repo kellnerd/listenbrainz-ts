@@ -78,7 +78,7 @@ export class ListenBrainzClient {
    *
    * This method should only be directly called for unsupported endpoints.
    */
-  async get(endpoint: string, query?: Record<string, string>) {
+  async get(endpoint: string, query?: Record<string, string>): Promise<any> {
     const endpointUrl = new URL(endpoint, this.apiBaseUrl);
     if (query) {
       endpointUrl.search = new URLSearchParams(query).toString();
