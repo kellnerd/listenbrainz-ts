@@ -1,3 +1,4 @@
+import type { UsersResult } from "./api_types.ts";
 import { ApiError, isError } from "./error.ts";
 import type { Listen, ListenSubmission, Track } from "./listen.ts";
 import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
@@ -71,6 +72,11 @@ export class ListenBrainzClient {
 
   async #submitListens(data: ListenSubmission) {
     await this.post("1/submit-listens", data);
+  }
+
+  /** Searches a ListenBrainz-registered user. */
+  searchUsers(searchTerm: string): Promise<UsersResult> {
+    return this.get("1/search/users", { search_term: searchTerm });
   }
 
   /**
