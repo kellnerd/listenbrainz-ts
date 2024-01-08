@@ -11,6 +11,7 @@ As this library only makes use of web standards, it is also compatible with mode
 - Submits listens and playing now notifications
 - Handles ListenBrainz authorization with user token
 - Adheres to rate limits and optionally retries failed requests
+- Provides generic `GET` and `POST` methods for (yet) unsupported API endpoints
 - Ships with type definitions and inline [documentation]
 
 ## Usage

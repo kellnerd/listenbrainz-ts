@@ -26,13 +26,12 @@ export interface ClientOptions {
  */
 export class ListenBrainzClient {
   constructor(options: ClientOptions) {
+    this.apiBaseUrl = options.apiUrl ?? "https://api.listenbrainz.org/";
     this.maxRetries = options.maxRetries ?? 1;
     this.#headers = {
       "Authorization": `Token ${options.userToken}`,
       "Content-Type": "application/json",
     };
-    const apiUrl = options.apiUrl ?? "https://api.listenbrainz.org/";
-    this.#submissionUrl = new URL("1/submit-listens", apiUrl);
   }
 
   /** Imports the given listens. */
@@ -67,11 +66,43 @@ export class ListenBrainzClient {
 
   /** Submits the given listening data. */
   submitListens(data: ListenSubmission) {
+    return this.post("1/submit-listens", data);
+  }
+
+  /**
+   * Fetches JSON data from the given `GET` endpoint.
+   *
+   * This method should only be directly called for unsupported endpoints.
+   */
+  async get(endpoint: string, query?: Record<string, string>) {
+    const endpointUrl = new URL(endpoint, this.apiBaseUrl);
+    if (query) {
+      endpointUrl.search = new URLSearchParams(query).toString();
+    }
+
+    const response = await this.#request(
+      new Request(endpointUrl, {
+        method: "GET",
+        headers: this.#headers,
+      }),
+      this.maxRetries,
+    );
+
+    return response.json();
+  }
+
+  /**
+   * Sends the given JSON data to the given `POST` endpoint.
+   *
+   * This method should only be directly called for unsupported endpoints.
+   */
+  post(endpoint: string, json: any) {
+    const endpointUrl = new URL(endpoint, this.apiBaseUrl);
     return this.#request(
-      new Request(this.#submissionUrl, {
+      new Request(endpointUrl, {
         method: "POST",
         headers: this.#headers,
-        body: JSON.stringify(data),
+        body: JSON.stringify(json),
       }),
       this.maxRetries,
     );
@@ -100,11 +131,12 @@ export class ListenBrainzClient {
     return response;
   }
 
+  /** Base URL of the ListenBrainz API endpoints. */
+  apiBaseUrl: string;
   /** Maximum number of times a failed request is repeated. */
   maxRetries: number;
   #headers: HeadersInit;
   #rateLimitDelay = Promise.resolve();
-  #submissionUrl: URL;
 }
 
 /** Returns the current time in Unix seconds. */
