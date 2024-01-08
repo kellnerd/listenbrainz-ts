@@ -1,3 +1,3 @@
 export { type ClientOptions, ListenBrainzClient } from "./client.ts";
 
-export type { Listen, Track } from "./listen.ts";
+export type { AdditionalTrackInfo, Listen, Track } from "./listen.ts";

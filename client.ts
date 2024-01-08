@@ -40,7 +40,7 @@ export class ListenBrainzClient {
 
   /** Imports the given listens. */
   import(listens: Listen[]) {
-    return this.submitListens({ listen_type: "import", payload: listens });
+    return this.#submitListens({ listen_type: "import", payload: listens });
   }
 
   /**
@@ -51,7 +51,7 @@ export class ListenBrainzClient {
    * Defaults to the current time if not specified.
    */
   listen(track: Track, listenedAt?: number) {
-    return this.submitListens({
+    return this.#submitListens({
       listen_type: "single",
       payload: [{
         listened_at: listenedAt ?? now(),
@@ -62,14 +62,13 @@ export class ListenBrainzClient {
 
   /** Submits a playing now notification for the given track. */
   playingNow(track: Track) {
-    return this.submitListens({
+    return this.#submitListens({
       listen_type: "playing_now",
       payload: [{ track_metadata: track }],
     });
   }
 
-  /** Submits the given listening data. */
-  submitListens(data: ListenSubmission) {
+  #submitListens(data: ListenSubmission) {
     return this.post("1/submit-listens", data);
   }
 
