@@ -36,8 +36,7 @@ inputs.forEach(async (input) => {
     console.log("Listen @", formatTimestamp(listeningStart), track);
     prompt("Press enter to submit this listen...");
 
-    const response = await client.listen(track, listeningStart);
-    console.log("Response:", response.status, await response.json());
+    await client.listen(track, listeningStart);
   } else {
     console.warn("Skipping invalid input:", input);
     return;

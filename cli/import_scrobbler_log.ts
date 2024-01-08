@@ -27,11 +27,11 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
     if (preview) {
       listens.forEach((listen) => console.info(formatListen(listen)));
     } else {
-      const response = await client.import(listens);
-      if (response.ok) {
+      try {
+        await client.import(listens);
         console.info(listens.length, "listens have been submitted.");
-      } else {
-        console.error("Failed to submit listens:", await response.json());
+      } catch (error) {
+        console.error("Failed to submit listens:", error);
       }
     }
   }
@@ -47,7 +47,7 @@ if (import.meta.main) {
   const { _: paths, preview, onlyAlbums } = parseArgs(Deno.args, {
     boolean: ["preview", "onlyAlbums"],
     string: ["_"],
-    alias: { p: "preview", a: "onlyAlbums" },
+    alias: { "preview": "p", "onlyAlbums": "a" },
   });
 
   for (const path of paths) {

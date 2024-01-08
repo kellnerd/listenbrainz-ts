@@ -19,6 +19,5 @@ if (artist && title) {
   };
   console.log("Listen:", track);
 
-  const response = await client.playingNow(track);
-  console.log("Response:", response.status, await response.json());
+  await client.playingNow(track);
 }
