@@ -1,5 +1,7 @@
 import type { Listen, ListenSubmission, Track } from "./listen.ts";
+import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
 import { delay } from "https://deno.land/std@0.210.0/async/delay.ts";
+import { validate } from "https://deno.land/std@0.210.0/uuid/v4.ts";
 
 /** ListenBrainz API client configuration options. */
 export interface ClientOptions {
@@ -28,6 +30,8 @@ export class ListenBrainzClient {
   constructor(options: ClientOptions) {
     this.apiBaseUrl = options.apiUrl ?? "https://api.listenbrainz.org/";
     this.maxRetries = options.maxRetries ?? 1;
+
+    assert(validate(options.userToken), "No valid user token has been passed");
     this.#headers = {
       "Authorization": `Token ${options.userToken}`,
       "Content-Type": "application/json",
