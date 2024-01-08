@@ -1,3 +1,4 @@
+import { ApiError, isError } from "./error.ts";
 import type { Listen, ListenSubmission, Track } from "./listen.ts";
 import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
 import { delay } from "https://deno.land/std@0.210.0/async/delay.ts";
@@ -68,8 +69,8 @@ export class ListenBrainzClient {
     });
   }
 
-  #submitListens(data: ListenSubmission) {
-    return this.post("1/submit-listens", data);
+  async #submitListens(data: ListenSubmission) {
+    await this.post("1/submit-listens", data);
   }
 
   /**
@@ -91,7 +92,12 @@ export class ListenBrainzClient {
       this.maxRetries,
     );
 
-    return response.json();
+    const data = await response.json();
+    if (isError(data)) {
+      throw new ApiError(data.error, data.code);
+    } else {
+      return data;
+    }
   }
 
   /**
@@ -99,9 +105,9 @@ export class ListenBrainzClient {
    *
    * This method should only be directly called for unsupported endpoints.
    */
-  post(endpoint: string, json: any) {
+  async post(endpoint: string, json: any): Promise<any> {
     const endpointUrl = new URL(endpoint, this.apiBaseUrl);
-    return this.#request(
+    const response = await this.#request(
       new Request(endpointUrl, {
         method: "POST",
         headers: this.#headers,
@@ -109,6 +115,13 @@ export class ListenBrainzClient {
       }),
       this.maxRetries,
     );
+
+    const data = await response.json();
+    if (isError(data)) {
+      throw new ApiError(data.error, data.code);
+    } else {
+      return data;
+    }
   }
 
   async #request(input: Request | URL, retries = 0): Promise<Response> {
