@@ -15,7 +15,12 @@ export interface Track {
   additional_info?: Partial<AdditionalTrackInfo>;
 }
 
-/** Additional metadata an audio track can have. */
+/**
+ * Additional metadata an audio track can have.
+ *
+ * Other unspecified fields that may be submitted here will not be removed, but
+ * ListenBrainz may decide to formally specify or scrub fields in the future.
+ */
 export interface AdditionalTrackInfo {
   /**
    * List of MusicBrainz Artist IDs, one or more IDs may be included here.
@@ -37,12 +42,6 @@ export interface AdditionalTrackInfo {
   tracknumber: number;
   /** The ISRC code associated with the recording. */
   isrc: string;
-  /**
-   * The Spotify track URL associated with this recording.
-   *
-   * @example "http://open.spotify.com/track/1rrgWMXGCGHru5bIRxGFV0"
-   */
-  spotify_id: string;
   /**
    * List of user-defined folksonomy tags to be associated with this recording.
    * You may submit up to [`MAX_TAGS_PER_LISTEN`] tags and each tag may be up to
@@ -103,6 +102,37 @@ export interface AdditionalTrackInfo {
    * You should only include one of `duration_ms` or `duration`.
    */
   duration: number;
+  /**
+   * The Spotify track URL associated with this recording.
+   *
+   * @example "http://open.spotify.com/track/1rrgWMXGCGHru5bIRxGFV0"
+   */
+  spotify_id: string;
+
+  // The following properties are not officially documented, but used by LB.
+
+  /** Number of the medium on which the track can be found. */
+  discnumber: number;
+  /** Name of the track artist. */
+  artist_names: string[];
+  /** Name of the release artist. */
+  release_artist_name: string;
+  /** Names of the release artists. */
+  release_artist_names: string[];
+  /** The Spotify artist URLs associated with the recording artists. */
+  spotify_artist_ids: string[];
+  /** The Spotify album URL associated with the release. */
+  spotify_album_id: string;
+  /** The Spotify artist URLs associated with the album artists. */
+  spotify_album_artist_ids: string[];
+  /** The YouTube URL associated with the track. */
+  youtube_id: string;
+  /** MessyBrainz ID (should not be submitted).  */
+  recording_msid: string;
+  /** @deprecated Use `media_player` or `music_service` instead. */
+  listening_from: string;
+
+  [unspecified: string]: unknown;
 }
 
 /**
@@ -162,6 +192,56 @@ export type ListenSubmission = {
     track_metadata: Track;
   }];
 };
+
+/** Listen which has already been inserted into the database. */
+export interface InsertedListen extends Listen {
+  /** Unix time when the track was inserted into the database (in seconds). */
+  inserted_at: number;
+  /** MessyBrainz ID (gets assigned to a hash of the track metadata).  */
+  recording_msid: string;
+  /** MusicBrainz name of the user who submitted this listen. */
+  user_name: string;
+  track_metadata: Track | MappedTrack;
+}
+
+/** Track which has already been mapped to MBIDs by the server. */
+export interface MappedTrack extends Track {
+  /** Mapping of a track to MusicBrainz identifiers. */
+  mbid_mapping: MusicBrainzMapping;
+  // brainzplayer_metadata?: { track_name: string; };
+}
+
+/** Mapping of a track to MusicBrainz identifiers. */
+export interface MusicBrainzMapping {
+  /** Name of the mapped recording. */
+  recording_name?: string;
+  /** MusicBrainz Recording ID of the mapped recording. */
+  recording_mbid: string;
+  /** MusicBrainz Release ID of the mapped release. */
+  release_mbid: string;
+  /** List of MusicBrainz Artist IDs of the mapped recording’s artists. */
+  artist_mbids: string[];
+  /** MusicBrainz artist credit of the mapped recording. */
+  artists?: ArtistCredit[];
+  /** ID of the Cover Art Archive image. */
+  caa_id?: number;
+  /** MusicBrainz Release ID of the release whose cover art will be used. */
+  caa_release_mbid?: string;
+  /** Name of the mapped release group. */
+  release_group_name?: string;
+  /** MusicBrainz Release Group ID of the mapped release group. */
+  release_group_mbid?: string;
+}
+
+/** MusicBrainz artist with credited name, MBID and join phrase. */
+export interface ArtistCredit {
+  /** Credited name of the artist. */
+  artist_credit_name: string;
+  /** MusicBrainz Artist ID of the artist. */
+  artist_mbid: string;
+  /** Join phrase between this artist and the next artist. */
+  join_phrase: string;
+}
 
 /** Returns a string representation of the given listen (for logging). */
 export function formatListen(listen: Listen): string {

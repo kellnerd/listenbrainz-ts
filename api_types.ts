@@ -1,4 +1,4 @@
-import type { Listen, Track } from "./listen.ts";
+import type { InsertedListen, Track } from "./listen.ts";
 
 /** URL query parameters. */
 export type Query<T extends string | number = string> = Record<string, T>;
@@ -30,7 +30,7 @@ export interface UserListens {
   count: number;
   /** MusicBrainz name of the user whose listens are being returned. */
   user_id: string;
-  listens: Listen[];
+  listens: InsertedListen[];
   /** Timestamp of the latest listen in the document. */
   latest_listen_ts: number;
   /** Timestamp of the oldest listen in the document. */
