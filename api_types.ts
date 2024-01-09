@@ -1,4 +1,4 @@
-import type { Listen } from "./listen.ts";
+import type { Listen, Track } from "./listen.ts";
 
 /** URL query parameters. */
 export type Query<T extends string | number = string> = Record<string, T>;
@@ -35,6 +35,19 @@ export interface UserListens {
   latest_listen_ts: number;
   /** Timestamp of the oldest listen in the document. */
   oldest_listen_ts: number;
+}
+
+/** Payload which is returned by `1/user/<user_name>/playing-now`. */
+export interface UserPlayingNow {
+  /** Number of listens in the document. */
+  count: 0 | 1;
+  /** MusicBrainz name of the user whose listens are being returned. */
+  user_id: string;
+  listens: [] | [{
+    playing_now: true;
+    track_metadata: Track;
+  }];
+  playing_now: true;
 }
 
 /** Result which is returned by `1/search/users`. */

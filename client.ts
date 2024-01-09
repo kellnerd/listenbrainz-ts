@@ -3,6 +3,7 @@ import type {
   Payload,
   Query,
   UserListens,
+  UserPlayingNow,
   UsersResult,
 } from "./api_types.ts";
 import { ApiError, isError } from "./error.ts";
@@ -104,6 +105,14 @@ export class ListenBrainzClient {
       `1/user/${encodeURIComponent(userName)}/listens`,
       options,
     ) as Payload<UserListens>;
+    return payload;
+  }
+
+  /** Gets the listen being played right now for the given user. */
+  async getPlayingNow(userName: string): Promise<UserPlayingNow> {
+    const { payload } = await this.get(
+      `1/user/${encodeURIComponent(userName)}/playing-now`,
+    ) as Payload<UserPlayingNow>;
     return payload;
   }
 
