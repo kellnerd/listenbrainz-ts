@@ -19,11 +19,6 @@ export type LimitOptions = Partial<{
   count: number;
 }>;
 
-/** JSON document which is returned by many endpoints. */
-export type Payload<T> = {
-  payload: T;
-};
-
 /** Payload which is returned by `1/user/<user_name>/listens`. */
 export interface UserListens {
   /** Number of listens in the document. */

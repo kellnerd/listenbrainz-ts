@@ -1,6 +1,5 @@
 import type {
   LimitOptions,
-  Payload,
   Query,
   UserListens,
   UserPlayingNow,
@@ -204,6 +203,11 @@ export class ListenBrainzClient {
   #headers: HeadersInit;
   #rateLimitDelay = Promise.resolve();
 }
+
+/** JSON document which is returned by many endpoints. */
+type Payload<T> = {
+  payload: T;
+};
 
 /** Returns the current time in Unix seconds. */
 function now(): number {
