@@ -1,4 +1,10 @@
-import type { UsersResult } from "./api_types.ts";
+import type {
+  LimitOptions,
+  Payload,
+  Query,
+  UserListens,
+  UsersResult,
+} from "./api_types.ts";
 import { ApiError, isError } from "./error.ts";
 import type { Listen, ListenSubmission, Track } from "./listen.ts";
 import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
@@ -16,7 +22,7 @@ export interface ClientOptions {
 }
 
 /**
- * ListenBrainz API client to submit listens.
+ * ListenBrainz API client to submit listens and request data.
  *
  * You have to specify a user token which you can obtain from your [profile].
  *
@@ -74,6 +80,33 @@ export class ListenBrainzClient {
     await this.post("1/submit-listens", data);
   }
 
+  /** Gets the number of listens for the given user. */
+  async getListenCount(userName: string): Promise<number> {
+    const { payload } = await this.get(
+      `1/user/${encodeURIComponent(userName)}/listen-count`,
+    ) as Payload<{ count: number }>;
+    return payload.count;
+  }
+
+  /**
+   * Gets listens for the given user.
+   *
+   * If no options are given, the most recent listens will be returned.
+   * The optional `max_ts` and `min_ts` timestamps control at which point in
+   * time to start or stop returning listens.
+   * Listens are always returned in descending timestamp order.
+   */
+  async getListens(
+    userName: string,
+    options?: LimitOptions,
+  ): Promise<UserListens> {
+    const { payload } = await this.get(
+      `1/user/${encodeURIComponent(userName)}/listens`,
+      options,
+    ) as Payload<UserListens>;
+    return payload;
+  }
+
   /** Searches a ListenBrainz-registered user. */
   searchUsers(searchTerm: string): Promise<UsersResult> {
     return this.get("1/search/users", { search_term: searchTerm });
@@ -84,10 +117,12 @@ export class ListenBrainzClient {
    *
    * This method should only be directly called for unsupported endpoints.
    */
-  async get(endpoint: string, query?: Record<string, string>): Promise<any> {
+  async get(endpoint: string, query?: Query<string | number>): Promise<any> {
     const endpointUrl = new URL(endpoint, this.apiBaseUrl);
     if (query) {
-      endpointUrl.search = new URLSearchParams(query).toString();
+      // Hack to make TS accept query values of type `number`.
+      // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1568
+      endpointUrl.search = new URLSearchParams(query as Query).toString();
     }
 
     const response = await this.#request(
