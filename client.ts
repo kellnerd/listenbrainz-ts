@@ -1,6 +1,5 @@
 import type {
   LimitOptions,
-  Query,
   UserListens,
   UserPlayingNow,
   UsersResult,
@@ -205,6 +204,9 @@ export class ListenBrainzClient {
   #headers: HeadersInit;
   #rateLimitDelay = Promise.resolve();
 }
+
+/** URL query parameters. */
+export type Query<T extends string | number = string> = Record<string, T>;
 
 /** JSON document which is returned by many endpoints. */
 type Payload<T> = {

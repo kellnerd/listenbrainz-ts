@@ -1,8 +1,5 @@
 import type { InsertedListen, Track } from "./listen.ts";
 
-/** URL query parameters. */
-export type Query<T extends string | number = string> = Record<string, T>;
-
 /** Options to limit the returned listens or feed events. */
 export type LimitOptions = Partial<{
   /** Lower bound (exclusive) for Unix timestamps of the results. */
