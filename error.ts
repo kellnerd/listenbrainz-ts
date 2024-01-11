@@ -1,11 +1,14 @@
 /** Error which was caused by a ListenBrainz API call. */
 export class ApiError extends Error {
-  name = "ApiError";
   /** HTTP status code which was returned by the API. */
   statusCode: number;
 
   constructor(message: string, statusCode?: number) {
     super(message);
+    Object.defineProperty(this, "name", {
+      value: "ApiError",
+      enumerable: false,
+    });
     this.statusCode = statusCode ?? 500;
   }
 }
