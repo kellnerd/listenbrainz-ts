@@ -129,9 +129,10 @@ export interface AdditionalTrackInfo {
   youtube_id: string;
   /** MessyBrainz ID (should not be submitted).  */
   recording_msid: string;
-  /** @deprecated Use `media_player` or `music_service` instead. */
+  /** Use `media_player` or `music_service` instead. @deprecated */
   listening_from: string;
 
+  /** Other unspecified fields can be submitted as well. */
   [unspecified: string]: unknown;
 }
 
@@ -201,6 +202,7 @@ export interface InsertedListen extends Listen {
   recording_msid: string;
   /** MusicBrainz name of the user who submitted this listen. */
   user_name: string;
+  /** Metadata of the track, which may have been mapped to MBIDs. */
   track_metadata: Track | MappedTrack;
 }
 
