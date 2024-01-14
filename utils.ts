@@ -22,3 +22,37 @@ export async function* chunk<T>(
     yield buffer;
   }
 }
+
+/** Logger which writes JSON messages into a JSONL file. */
+export class JsonLogger {
+  #encoder: TextEncoder;
+  #output: WritableStreamDefaultWriter<Uint8Array> | undefined;
+
+  /**
+   * @param path Path to the output file. Content will be appended if it exists.
+   */
+  constructor(readonly path: string | URL) {
+    this.#encoder = new TextEncoder();
+  }
+
+  /** Opens the output file. Logger is a no-op without calling this. */
+  async open() {
+    const outputFile = await Deno.open(this.path, {
+      create: true,
+      append: true,
+    });
+    this.#output = outputFile.writable.getWriter();
+    await this.#output.ready;
+  }
+
+  /** Writes a line of stringified JSON into the output file. */
+  async log(json: any) {
+    const line = JSON.stringify(json) + "\n";
+    await this.#output?.write(this.#encoder.encode(line));
+  }
+
+  /** Closes the output file. */
+  async close() {
+    await this.#output?.close();
+  }
+}

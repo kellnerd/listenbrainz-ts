@@ -1,6 +1,6 @@
 import { ListenBrainzClient } from "../client.ts";
 import { formatListen, type Listen } from "../listen.ts";
-import { chunk } from "../utils.ts";
+import { chunk, JsonLogger } from "../utils.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { parseArgs } from "https://deno.land/std@0.210.0/cli/parse_args.ts";
 
@@ -17,12 +17,9 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
   const inputFile = await Deno.open(path);
   const input = inputFile.readable.pipeThrough(new TextDecoderStream());
 
-  const encoder = new TextEncoder();
-  let output: WritableStreamDefaultWriter<Uint8Array> | undefined = undefined;
+  const submissionLog = new JsonLogger(logfile);
   if (logfile) {
-    const outputFile = await Deno.open(logfile, { create: true, append: true });
-    output = outputFile.writable.getWriter();
-    await output.ready;
+    await submissionLog.open();
   }
 
   for await (let listens of chunk(parseScrobblerLog(input), chunkSize)) {
@@ -33,9 +30,7 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
       info.submission_client = clientName;
       info.submission_client_version = clientVersion;
 
-      if (output) {
-        await output.write(encoder.encode(JSON.stringify(listen) + "\n"));
-      }
+      await submissionLog.log(listen);
     }
 
     if (preview) {
@@ -50,9 +45,7 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
     }
   }
 
-  if (output) {
-    await output.close();
-  }
+  await submissionLog.close();
 }
 
 if (import.meta.main) {
