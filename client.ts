@@ -114,9 +114,12 @@ export class ListenBrainzClient {
     return payload;
   }
 
-  /** Searches a ListenBrainz-registered user. */
-  searchUsers(searchTerm: string): Promise<UsersResult> {
-    return this.get("1/search/users", { search_term: searchTerm });
+  /** Searches a ListenBrainz-registered user and returns a list of names. */
+  async searchUsers(searchTerm: string): Promise<string[]> {
+    const { users } = await this.get("1/search/users", {
+      search_term: searchTerm,
+    }) as UsersResult;
+    return users.map((user) => user.user_name);
   }
 
   /**
