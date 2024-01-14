@@ -11,27 +11,40 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
   chunkSize = 100,
   listenFilter = (listen: Listen) =>
     !listen.track_metadata.additional_info?.skipped,
-  logfile = "",
+  skippedLogFile = "",
+  submissionLogFile = "",
   preview = false,
 } = {}) {
   const inputFile = await Deno.open(path);
   const input = inputFile.readable.pipeThrough(new TextDecoderStream());
 
-  const submissionLog = new JsonLogger(logfile);
-  if (logfile) {
+  const isLogging = Boolean(submissionLogFile || skippedLogFile);
+  const submissionLog = new JsonLogger(submissionLogFile);
+  if (submissionLogFile) {
     await submissionLog.open();
   }
 
-  for await (let listens of chunk(parseScrobblerLog(input), chunkSize)) {
-    listens = listens.filter(listenFilter);
+  const skipLog = new JsonLogger(skippedLogFile);
+  if (skippedLogFile) {
+    await skipLog.open();
+  }
 
+  for await (let listens of chunk(parseScrobblerLog(input), chunkSize)) {
     for (const listen of listens) {
       const info = listen.track_metadata.additional_info ??= {};
       info.submission_client = clientName;
       info.submission_client_version = clientVersion;
 
-      await submissionLog.log(listen);
+      if (isLogging) {
+        if (listenFilter(listen)) {
+          await submissionLog.log(listen);
+        } else {
+          await skipLog.log(listen);
+        }
+      }
     }
+
+    listens = listens.filter(listenFilter);
 
     if (preview) {
       listens.forEach((listen) => console.info(formatListen(listen)));
@@ -46,6 +59,7 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
   }
 
   await submissionLog.close();
+  await skipLog.close();
 }
 
 if (import.meta.main) {
@@ -55,16 +69,23 @@ if (import.meta.main) {
   }
 
   const client = new ListenBrainzClient({ userToken });
-  const { logfile, _: paths, preview, onlyAlbums } = parseArgs(Deno.args, {
+  const {
+    _: paths,
+    log,
+    logSkipped,
+    preview,
+    onlyAlbums,
+  } = parseArgs(Deno.args, {
     boolean: ["preview", "onlyAlbums"],
-    string: ["_", "logfile"],
+    string: ["_", "log", "logSkipped"],
     alias: { "preview": "p", "onlyAlbums": "a" },
   });
 
   for (const path of paths) {
     await importScrobblerLog(path, client, {
-      logfile,
       preview,
+      skippedLogFile: logSkipped,
+      submissionLogFile: log,
       listenFilter: onlyAlbums
         ? (listen) => {
           const info = listen.track_metadata.additional_info;

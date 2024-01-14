@@ -1,6 +1,6 @@
 {
   "tasks": {
     "import": "deno run --allow-env=LB_TOKEN --allow-net=api.listenbrainz.org --env cli/import.ts",
-    "import-log": "deno run --allow-env=LB_TOKEN --allow-net=api.listenbrainz.org --allow-read --env cli/import_scrobbler_log.ts"
+    "import-log": "deno run --allow-env=LB_TOKEN --allow-net=api.listenbrainz.org --allow-read --allow-write --env cli/import_scrobbler_log.ts"
   }
 }

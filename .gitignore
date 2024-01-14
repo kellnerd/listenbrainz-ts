@@ -1,5 +1,8 @@
 # dotenv environment variables
 .env
 
+# JSONL listen log files
+*.jsonl
+
 # Deno dependency lock file
 deno.lock
