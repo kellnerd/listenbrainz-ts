@@ -7,6 +7,9 @@ import { TextLineStream } from "https://deno.land/std@0.210.0/streams/text_line_
 
 /**
  * Parses a readable text stream from a `.scrobbler.log` file into listens.
+ *
+ * Also yields skipped listens (`"S"`) which should generally not be submitted.
+ * These are marked with `track_metadata.additional_info.skipped = true`.
  */
 export async function* parseScrobblerLog(
   input: ReadableStream<string>,
@@ -67,9 +70,7 @@ export async function* parseScrobblerLog(
     if (scrobble.duration) info.duration = parseInt(scrobble.duration);
     if (scrobble.tracknumber) info.tracknumber = parseInt(scrobble.tracknumber);
     if (player) info.media_player = player;
-
-    // Ignore skipped "S" scrobbles, only listened "L" scrobbles count.
-    if (scrobble.rating === "S") continue;
+    if (scrobble.rating === "S") info.skipped = true;
 
     yield listen;
   }

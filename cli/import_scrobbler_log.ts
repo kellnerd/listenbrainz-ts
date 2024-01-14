@@ -5,12 +5,12 @@ import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { parseArgs } from "https://deno.land/std@0.210.0/cli/parse_args.ts";
 
 const clientName = "Deno ListenBrainz .scrobbler.log Importer";
-const clientVersion = "0.4.0";
+const clientVersion = "0.5.0";
 
 async function importScrobblerLog(path: string, client: ListenBrainzClient, {
   chunkSize = 100,
-  // deno-lint-ignore no-unused-vars
-  listenFilter = (listen: Listen) => <boolean> (true),
+  listenFilter = (listen: Listen) =>
+    !listen.track_metadata.additional_info?.skipped,
   preview = false,
 } = {}) {
   const file = await Deno.open(path);
@@ -55,7 +55,10 @@ if (import.meta.main) {
     await importScrobblerLog(path, client, {
       preview,
       listenFilter: onlyAlbums
-        ? (listen) => !!(listen.track_metadata.additional_info?.tracknumber)
+        ? (listen) => {
+          const info = listen.track_metadata.additional_info;
+          return Boolean(info && info.tracknumber && !info.skipped);
+        }
         : undefined,
     });
   }
