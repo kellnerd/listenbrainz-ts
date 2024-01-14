@@ -11,10 +11,19 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
   chunkSize = 100,
   listenFilter = (listen: Listen) =>
     !listen.track_metadata.additional_info?.skipped,
+  logfile = "",
   preview = false,
 } = {}) {
-  const file = await Deno.open(path);
-  const input = file.readable.pipeThrough(new TextDecoderStream());
+  const inputFile = await Deno.open(path);
+  const input = inputFile.readable.pipeThrough(new TextDecoderStream());
+
+  const encoder = new TextEncoder();
+  let output: WritableStreamDefaultWriter<Uint8Array> | undefined = undefined;
+  if (logfile) {
+    const outputFile = await Deno.open(logfile, { create: true, append: true });
+    output = outputFile.writable.getWriter();
+    await output.ready;
+  }
 
   for await (let listens of chunk(parseScrobblerLog(input), chunkSize)) {
     listens = listens.filter(listenFilter);
@@ -23,6 +32,10 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
       const info = listen.track_metadata.additional_info ??= {};
       info.submission_client = clientName;
       info.submission_client_version = clientVersion;
+
+      if (output) {
+        await output.write(encoder.encode(JSON.stringify(listen) + "\n"));
+      }
     }
 
     if (preview) {
@@ -36,6 +49,10 @@ async function importScrobblerLog(path: string, client: ListenBrainzClient, {
       }
     }
   }
+
+  if (output) {
+    await output.close();
+  }
 }
 
 if (import.meta.main) {
@@ -45,14 +62,15 @@ if (import.meta.main) {
   }
 
   const client = new ListenBrainzClient({ userToken });
-  const { _: paths, preview, onlyAlbums } = parseArgs(Deno.args, {
+  const { logfile, _: paths, preview, onlyAlbums } = parseArgs(Deno.args, {
     boolean: ["preview", "onlyAlbums"],
-    string: ["_"],
+    string: ["_", "logfile"],
     alias: { "preview": "p", "onlyAlbums": "a" },
   });
 
   for (const path of paths) {
     await importScrobblerLog(path, client, {
+      logfile,
       preview,
       listenFilter: onlyAlbums
         ? (listen) => {
