@@ -6,6 +6,11 @@ export {
 
 export { ApiError } from "./error.ts";
 
-export type { AdditionalTrackInfo, Listen, Track } from "./listen.ts";
+export type {
+  AdditionalTrackInfo,
+  Listen,
+  Track,
+  UniqueListen,
+} from "./listen.ts";
 
 export type * from "./api_types.ts";

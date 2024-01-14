@@ -248,6 +248,12 @@ export interface ArtistCredit {
   join_phrase: string;
 }
 
+/** Uniquely identifiable listen of a user. */
+export type UniqueListen = InsertedListen | {
+  listened_at: number;
+  recording_msid: string;
+};
+
 /** Returns a string representation of the given listen (for logging). */
 export function formatListen(listen: Listen): string {
   const { artist_name, track_name, release_name, additional_info } =

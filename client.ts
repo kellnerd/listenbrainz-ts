@@ -5,7 +5,12 @@ import type {
   UsersResult,
 } from "./api_types.ts";
 import { ApiError, isError } from "./error.ts";
-import type { Listen, ListenSubmission, Track } from "./listen.ts";
+import type {
+  Listen,
+  ListenSubmission,
+  Track,
+  UniqueListen,
+} from "./listen.ts";
 import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
 import { delay } from "https://deno.land/std@0.210.0/async/delay.ts";
 import { validate } from "https://deno.land/std@0.210.0/uuid/v4.ts";
@@ -77,6 +82,19 @@ export class ListenBrainzClient {
 
   async #submitListens(data: ListenSubmission) {
     await this.post("1/submit-listens", data);
+  }
+
+  /**
+   * Deletes a particular listen from a user’s listen history.
+   *
+   * The listen is not deleted immediately, but is scheduled for deletion,
+   * which usually happens shortly after the hour.
+   */
+  async deleteListen(listen: UniqueListen) {
+    await this.post("1/delete-listen", {
+      listened_at: listen.listened_at,
+      recording_msid: listen.recording_msid,
+    });
   }
 
   /** Gets the number of listens for the given user. */
