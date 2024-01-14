@@ -61,7 +61,7 @@ export interface AdditionalTrackInfo {
   /**
    * The name of the client that is being used to submit listens to ListenBrainz.
    * If the media player has the ability to submit listens built-in then this
-   * value may be the same as `media_player`.
+   * value may be the same as {@linkcode media_player}.
    * Don’t include a version number here.
    */
   submission_client: string;
@@ -86,20 +86,20 @@ export interface AdditionalTrackInfo {
   /**
    * If the song of this listen comes from an online source, the URL to the
    * place where it is available. This could be a Spotify URL
-   * (see `spotify_id`), a YouTube video URL, a Soundcloud recording page URL,
-   * or the full URL to a public MP3 file.
+   * (see {@linkcode spotify_id}), a YouTube video URL, a Soundcloud recording
+   * page URL, or the full URL to a public MP3 file.
    * If there is a webpage for this song (e.g. Youtube page, Soundcloud page)
    * do not try and resolve the URL to an actual audio resource.
    */
   origin_url: string;
   /**
    * The duration of the track in milliseconds (integer).
-   * You should only include one of `duration_ms` or `duration`.
+   * You should only include one of `duration_ms` or {@linkcode duration}.
    */
   duration_ms: number;
   /**
    * The duration of the track in seconds (integer).
-   * You should only include one of `duration_ms` or `duration`.
+   * You should only include one of {@linkcode duration_ms} or `duration`.
    */
   duration: number;
   /**
@@ -129,7 +129,10 @@ export interface AdditionalTrackInfo {
   youtube_id: string;
   /** MessyBrainz ID (should not be submitted).  */
   recording_msid: string;
-  /** Use `media_player` or `music_service` instead. @deprecated */
+  /**
+   * Source of the listens.
+   * @deprecated Use {@linkcode media_player} or {@linkcode music_service} instead.
+   */
   listening_from: string;
 
   /** Other unspecified fields can be submitted as well. */
