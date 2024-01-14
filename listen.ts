@@ -267,3 +267,14 @@ export function formatListen(listen: Listen): string {
     `#${additional_info?.tracknumber ?? 0}`,
   ].join(" | ");
 }
+
+/** Checks whether the given JSON is a listen. */
+// deno-lint-ignore no-explicit-any
+export function isListen(json: any): json is Listen {
+  const metadata = json.track_metadata;
+
+  return Number.isInteger(json.listened_at) &&
+    typeof metadata === "object" &&
+    typeof metadata.track_name === "string" &&
+    typeof metadata.artist_name === "string";
+}

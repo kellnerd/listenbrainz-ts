@@ -1,4 +1,7 @@
+import { type Listen } from "./listen.ts";
+import { parseJson, parseJsonLines } from "./parser/json.ts";
 import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
+import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
 
 /** Splits the given asynchronous iterable into chunks of the given size. */
 export async function* chunk<T>(
@@ -54,5 +57,24 @@ export class JsonLogger {
   /** Closes the output file. */
   async close() {
     await this.#output?.close();
+  }
+}
+
+/** Reads listens from a JSON or JSONL file at the given path. */
+export async function* readListensFile(path: string): AsyncGenerator<Listen> {
+  const extension = extname(path);
+  if (extension === ".jsonl") {
+    const inputFile = await Deno.open(path);
+    const input = inputFile.readable.pipeThrough(new TextDecoderStream());
+
+    for await (const listen of parseJsonLines(input)) {
+      yield listen;
+    }
+  } else if (extension === ".json") {
+    const input = await Deno.readTextFile(path);
+
+    for (const listen of parseJson(input)) {
+      yield listen;
+    }
   }
 }
