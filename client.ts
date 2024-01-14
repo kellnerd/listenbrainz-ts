@@ -154,13 +154,10 @@ export class ListenBrainzClient {
       endpointUrl.search = new URLSearchParams(query as Query).toString();
     }
 
-    const response = await this.#request(
-      new Request(endpointUrl, {
-        method: "GET",
-        headers: this.#headers,
-      }),
-      this.maxRetries,
-    );
+    const response = await this.#request(endpointUrl, {
+      method: "GET",
+      headers: this.#headers,
+    }, this.maxRetries);
 
     const data = await response.json();
     if (isError(data)) {
@@ -178,14 +175,11 @@ export class ListenBrainzClient {
   // deno-lint-ignore no-explicit-any
   async post(endpoint: string, json: any): Promise<any> {
     const endpointUrl = new URL(endpoint, this.apiBaseUrl);
-    const response = await this.#request(
-      new Request(endpointUrl, {
-        method: "POST",
-        headers: this.#headers,
-        body: JSON.stringify(json),
-      }),
-      this.maxRetries,
-    );
+    const response = await this.#request(endpointUrl, {
+      method: "POST",
+      headers: this.#headers,
+      body: JSON.stringify(json),
+    }, this.maxRetries);
 
     const data = await response.json();
     if (isError(data)) {
@@ -195,10 +189,10 @@ export class ListenBrainzClient {
     }
   }
 
-  async #request(input: Request | URL, retries = 0): Promise<Response> {
+  async #request(url: URL, init?: RequestInit, retries = 0): Promise<Response> {
     await this.#rateLimitDelay;
 
-    const response = await fetch(input);
+    const response = await fetch(url, init);
 
     /** Number of requests remaining in current time window. */
     const remainingRequests = response.headers.get("X-RateLimit-Remaining");
@@ -212,7 +206,7 @@ export class ListenBrainzClient {
 
     // Repeat if failed for "429: Too Many Requests"
     if (retries > 0 && response.status === 429) {
-      return this.#request(input, retries - 1);
+      return this.#request(url, init, retries - 1);
     }
 
     return response;
