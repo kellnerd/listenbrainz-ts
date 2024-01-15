@@ -2,7 +2,6 @@ import type {
   LimitOptions,
   UserListens,
   UserPlayingNow,
-  UsersResult,
 } from "./api_types.ts";
 import { ApiError, isError } from "./error.ts";
 import type {
@@ -136,7 +135,7 @@ export class ListenBrainzClient {
   async searchUsers(searchTerm: string): Promise<string[]> {
     const { users } = await this.get("1/search/users", {
       search_term: searchTerm,
-    }) as UsersResult;
+    }) as { users: Array<{ user_name: string }> };
     return users.map((user) => user.user_name);
   }
 
