@@ -37,7 +37,7 @@ These objects can then be used together with the ListenBrainz API and the LB cli
 The parsers do not include any logic to access files to make them platform independent.
 You can pass them the content from a HTTP response body or from a Deno file, for example.
 
-The following parsers are available in the [`parser/` submodules](parser/):
+The following parsers are available in the `listenbrainz/parser/*.ts` submodules:
 
 - **JSON**: Accepts a JSON-serialized `Listen` object (as shown by the LB “Inspect listen” dialog) or an array of `Listen` objects (format of a [LB listening history export]) as input.
 - **JSONL**: Multiple JSON-serialized `Listen` objects, separated by line breaks.
