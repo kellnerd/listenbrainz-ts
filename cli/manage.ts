@@ -11,6 +11,14 @@ export const cli = new Command()
     prefix: "LB_",
     required: true,
   })
+  .command("history <user>", "Show the listening history of the given user.")
+  .action(async (options, user) => {
+    const client = new ListenBrainzClient({ userToken: options.token });
+    const { listens } = await client.getListens(user);
+    for (const listen of listens) {
+      console.log(formatListen(listen));
+    }
+  })
   .command("import <path:file>", "Import listens from the given JSON file.")
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async (options, path) => {
