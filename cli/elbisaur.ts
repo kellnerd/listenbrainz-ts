@@ -4,7 +4,7 @@ import { chunk, readListensFile } from "../utils.ts";
 import { Command } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/mod.ts";
 
 export const cli = new Command()
-  .name("manage.ts")
+  .name("elbisaur")
   .version("0.5.0")
   .description("Manage your ListenBrainz listens.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
