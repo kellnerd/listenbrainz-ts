@@ -78,5 +78,8 @@ export const cli = new Command()
   });
 
 if (import.meta.main) {
+  // Automatically load environment variables from `.env` file.
+  await import("https://deno.land/std@0.210.0/dotenv/load.ts");
+
   await cli.parse();
 }
