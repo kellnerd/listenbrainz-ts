@@ -9,7 +9,7 @@ import {
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.5.0")
+  .version("0.6.0")
   .description("Manage your ListenBrainz listens.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -18,10 +18,20 @@ export const cli = new Command()
   .action(function () {
     this.showHelp();
   })
-  .command("history <user>", "Show the listening history of the given user.")
-  .action(async function (options, user) {
+  .command("history", "Show the listening history of yourself or another user.")
+  .env("LB_USER=<name>", "ListenBrainz username.", { prefix: "LB_" })
+  .option("-u, --user <name>", "ListenBrainz username, defaults to you.")
+  .action(async function (options) {
     const client = new ListenBrainzClient({ userToken: options.token });
-    const { listens } = await client.getListens(user);
+    if (!options.user) {
+      const username = await client.validateToken();
+      if (!username) {
+        throw new ValidationError("Specified token is invalid");
+      } else {
+        options.user = username;
+      }
+    }
+    const { listens } = await client.getListens(options.user);
     for (const listen of listens) {
       console.log(formatListen(listen));
     }
