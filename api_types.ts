@@ -23,9 +23,9 @@ export interface UserListens {
   /** MusicBrainz name of the user whose listens are being returned. */
   user_id: string;
   listens: InsertedListen[];
-  /** Timestamp of the latest listen in the document. */
+  /** Timestamp of the latest listen by the user. */
   latest_listen_ts: number;
-  /** Timestamp of the oldest listen in the document. */
+  /** Timestamp of the oldest listen by the user. */
   oldest_listen_ts: number;
 }
 
