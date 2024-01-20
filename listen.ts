@@ -254,6 +254,23 @@ export type UniqueListen = InsertedListen | {
   recording_msid: string;
 };
 
+/**
+ * Creates a clean copy of the given listen.
+ * Removes all properties which can not be contained in a submitted listen.
+ */
+export function cleanListen(input: Listen | InsertedListen): Listen {
+  const meta = input.track_metadata;
+  return {
+    listened_at: input.listened_at,
+    track_metadata: {
+      artist_name: meta.artist_name,
+      track_name: meta.track_name,
+      release_name: meta.release_name,
+      additional_info: meta.additional_info,
+    },
+  };
+}
+
 /** Returns a string representation of the given listen (for logging). */
 export function formatListen(listen: Listen): string {
   const { artist_name, track_name, release_name, additional_info } =

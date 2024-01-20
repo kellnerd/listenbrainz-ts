@@ -1,5 +1,5 @@
 import { ListenBrainzClient } from "../client.ts";
-import { formatListen, type Track } from "../listen.ts";
+import { cleanListen, formatListen, type Track } from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
 import { chunk, readListensFile } from "../utils.ts";
 import {
@@ -18,6 +18,7 @@ export const cli = new Command()
   .action(function () {
     this.showHelp();
   })
+  // Listening history
   .command("history", "Show the listening history of yourself or another user.")
   .env("LB_USER=<name>", "ListenBrainz username.", { prefix: "LB_" })
   .option("-u, --user <name>", "ListenBrainz username, defaults to you.")
@@ -36,6 +37,7 @@ export const cli = new Command()
       console.log(formatListen(listen));
     }
   })
+  // Import JSON
   .command("import <path:file>", "Import listens from the given JSON file.")
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, path) {
@@ -48,12 +50,14 @@ export const cli = new Command()
       const client = new ListenBrainzClient({ userToken: options.token });
       let count = 0;
       for await (const listens of chunk(listenSource, 100)) {
-        await client.import(listens);
+        const newListens = listens.map((listen) => cleanListen(listen));
+        await client.import(newListens);
         count += listens.length;
         console.info(count, "listens imported");
       }
     }
   })
+  // Submit listen
   .command("listen <metadata>")
   .description(`
     Submit listen for the given track metadata.
