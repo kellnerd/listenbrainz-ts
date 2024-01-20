@@ -295,3 +295,18 @@ export function isListen(json: any): json is Listen | InsertedListen {
     typeof metadata.track_name === "string" &&
     typeof metadata.artist_name === "string";
 }
+
+/**
+ * Sets the submission client name and version for the given track,
+ * if it is not already set or if the `overwrite` flag is enabled.
+ */
+export function setSubmissionClient(
+  track: Track,
+  client: { name: string; version: string; overwrite?: boolean },
+) {
+  const info = track.additional_info ??= {};
+  if (client.overwrite || !info.submission_client) {
+    info.submission_client = client.name;
+    info.submission_client_version = client.version;
+  }
+}

@@ -1,5 +1,10 @@
 import { ListenBrainzClient } from "../client.ts";
-import { cleanListen, formatListen, type Track } from "../listen.ts";
+import {
+  cleanListen,
+  formatListen,
+  setSubmissionClient,
+  type Track,
+} from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
 import { chunk, readListensFile } from "../utils.ts";
 import {
@@ -50,7 +55,14 @@ export const cli = new Command()
       const client = new ListenBrainzClient({ userToken: options.token });
       let count = 0;
       for await (const listens of chunk(listenSource, 100)) {
-        const newListens = listens.map((listen) => cleanListen(listen));
+        const newListens = listens.map((listen) => {
+          const newListen = cleanListen(listen);
+          setSubmissionClient(newListen.track_metadata, {
+            name: "elbisaur (JSON importer)",
+            version: this.getVersion()!,
+          });
+          return newListen;
+        });
         await client.import(newListens);
         count += listens.length;
         console.info(count, "listens imported");
@@ -76,6 +88,10 @@ export const cli = new Command()
         artist_name: trackMatch.groups.artist,
         track_name: trackMatch.groups.title,
       };
+      setSubmissionClient(track, {
+        name: "elbisaur (track submitter)",
+        version: this.getVersion()!,
+      });
       if (options.preview) {
         console.log(formatListen({
           listened_at: startTime,
