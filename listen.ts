@@ -270,7 +270,7 @@ export function formatListen(listen: Listen): string {
 
 /** Checks whether the given JSON is a listen. */
 // deno-lint-ignore no-explicit-any
-export function isListen(json: any): json is Listen {
+export function isListen(json: any): json is Listen | InsertedListen {
   const metadata = json.track_metadata;
 
   return Number.isInteger(json.listened_at) &&

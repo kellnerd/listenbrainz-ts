@@ -1,4 +1,4 @@
-import { isListen, type Listen } from "../listen.ts";
+import { type InsertedListen, isListen, type Listen } from "../listen.ts";
 import { TextLineStream } from "https://deno.land/std@0.210.0/streams/text_line_stream.ts";
 
 /**
@@ -8,7 +8,7 @@ import { TextLineStream } from "https://deno.land/std@0.210.0/streams/text_line_
  */
 export async function* parseJsonLines(
   input: ReadableStream<string>,
-): AsyncGenerator<Listen> {
+): AsyncGenerator<Listen | InsertedListen> {
   const lineStream = input.pipeThrough(new TextLineStream());
 
   let lineNumber = 0;
@@ -29,7 +29,7 @@ export async function* parseJsonLines(
  *
  * Accepts a serialized listen object or an array of listen objects as input.
  */
-export function* parseJson(input: string): Generator<Listen> {
+export function* parseJson(input: string): Generator<Listen | InsertedListen> {
   const json = JSON.parse(input);
 
   if (isListen(json)) {

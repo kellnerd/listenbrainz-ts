@@ -1,4 +1,4 @@
-import { type Listen } from "./listen.ts";
+import { type InsertedListen, type Listen } from "./listen.ts";
 import { parseJson, parseJsonLines } from "./parser/json.ts";
 import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
 import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
@@ -49,6 +49,7 @@ export class JsonLogger {
   }
 
   /** Writes a line of stringified JSON into the output file. */
+  // deno-lint-ignore no-explicit-any
   async log(json: any) {
     const line = JSON.stringify(json) + "\n";
     await this.#output?.write(this.#encoder.encode(line));
@@ -61,7 +62,9 @@ export class JsonLogger {
 }
 
 /** Reads listens from a JSON or JSONL file at the given path. */
-export async function* readListensFile(path: string): AsyncGenerator<Listen> {
+export async function* readListensFile(
+  path: string,
+): AsyncGenerator<Listen | InsertedListen> {
   const extension = extname(path);
   if (extension === ".jsonl") {
     const inputFile = await Deno.open(path);
