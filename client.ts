@@ -131,6 +131,19 @@ export class ListenBrainzClient {
     return payload;
   }
 
+  /**
+   * Checks whether the client’s user token is valid.
+   *
+   * @returns The user’s name, or `false` if the token is invalid.
+   */
+  async validateToken(): Promise<string | false> {
+    const result = await this.get("1/validate-token") as { valid: false } | {
+      user_name: string;
+      valid: true;
+    };
+    return result.valid && result.user_name;
+  }
+
   /** Searches a ListenBrainz-registered user and returns a list of names. */
   async searchUsers(searchTerm: string): Promise<string[]> {
     const { users } = await this.get("1/search/users", {
