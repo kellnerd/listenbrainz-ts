@@ -9,6 +9,8 @@ import {
 } from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
 import { chunk, JsonLogger, readListensFile } from "../utils.ts";
+import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
+import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
 import {
   Command,
   ValidationError,
@@ -130,6 +132,38 @@ export const cli = new Command()
       }
     } else {
       throw new ValidationError(`Invalid metadata format "${input}"`);
+    }
+  })
+  // File parser
+  .command("parse <input:file> [output:file]")
+  .description(`
+    Parse listens from the given input file and write them into a JSONL file.
+    If no output file is specified, it will have the same name as the input,
+    but with a ".jsonl" extension.
+
+    Supported format: .scrobbler.log
+  `)
+  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
+  .action(async function (options, inputPath, outputPath) {
+    const listenFilter = getListenFilter(options.filter);
+    const extension = extname(inputPath);
+    if (extension === ".log") {
+      const inputFile = await Deno.open(inputPath);
+      const input = inputFile.readable.pipeThrough(new TextDecoderStream());
+      const output = new JsonLogger();
+      await output.open(outputPath ?? inputPath + ".jsonl");
+      for await (const listen of parseScrobblerLog(input)) {
+        if (listenFilter(listen)) {
+          setSubmissionClient(listen.track_metadata, {
+            name: "elbisaur (.scrobbler.log parser)",
+            version: this.getVersion()!,
+          });
+          await output.log(listen);
+        }
+      }
+      await output.close();
+    } else {
+      throw new ValidationError(`Unsupported file format "${extension}"`);
     }
   });
 
