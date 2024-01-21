@@ -166,9 +166,9 @@ export const cli = new Command()
   `)
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .action(async function (options, inputPath, outputPath) {
-    const listenFilter = getListenFilter(options.filter);
     const extension = extname(inputPath);
     if (extension === ".log") {
+      const listenFilter = getListenFilter(options.filter);
       const inputFile = await Deno.open(inputPath);
       const input = inputFile.readable.pipeThrough(new TextDecoderStream());
       const output = new JsonLogger();
@@ -186,6 +186,27 @@ export const cli = new Command()
     } else {
       throw new ValidationError(`Unsupported file format "${extension}"`);
     }
+  })
+  // Modify listens
+  .command(
+    "transform <input:file> <output:file>",
+    "Modify listens from a JSON input file and write them into a JSONL file.",
+  )
+  .option("-e, --edit <expression>", "Edit track metadata.", { collect: true })
+  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
+  .action(async function (options, inputPath, outputPath) {
+    const listenFilter = getListenFilter(options.filter);
+    const editListen = getListenModifier(options.edit);
+    const listenSource = readListensFile(inputPath);
+    const output = new JsonLogger();
+    await output.open(outputPath);
+    for await (const listen of listenSource) {
+      if (listenFilter(listen)) {
+        editListen(listen);
+        await output.log(listen);
+      }
+    }
+    await output.close();
   });
 
 function getListenFilter(filterSpecification?: string) {
@@ -207,6 +228,33 @@ function getListenFilter(filterSpecification?: string) {
       if (operator === "==") return value == actualValue;
       else return value != actualValue;
     });
+  };
+}
+
+function getListenModifier(expressions?: string[]) {
+  const edits = expressions?.map((expression) => {
+    const edit = expression.match(
+      /^(?<key>\w+)(?<operator>=)(?<value>.+)/,
+    )?.groups;
+    if (!edit) {
+      throw new ValidationError(`Invalid edit expression "${expression}"`);
+    }
+    return edit as { key: string; operator: "="; value: string };
+  });
+
+  return function (listen: Listen) {
+    if (!edits) return;
+    const track = listen.track_metadata;
+    for (const { key, value } of edits) {
+      if (
+        key === "track_name" || key === "artist_name" || key === "release_name"
+      ) {
+        track[key] = value;
+      } else {
+        const info = track.additional_info ??= {};
+        info[key] = value;
+      }
+    }
   };
 }
 
