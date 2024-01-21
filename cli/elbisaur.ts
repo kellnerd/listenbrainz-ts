@@ -107,7 +107,7 @@ export const cli = new Command()
             return newListen;
           });
         await client.import(newListens);
-        count += listens.length;
+        count += newListens.length;
         console.info(count, "listens imported");
       }
     }
