@@ -78,5 +78,7 @@ export async function* readListensFile(
     for (const listen of parseJson(input)) {
       yield listen;
     }
+  } else {
+    throw new Error(`Unsupported file extension "${extension}"`);
   }
 }
