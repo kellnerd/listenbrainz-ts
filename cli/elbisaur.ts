@@ -96,6 +96,7 @@ export const cli = new Command()
       <metadata> = "<artist> - <title>"
   `)
   .option("--at <datetime>", "Time when you started listening.")
+  .option("--now", "Submit a playing now notification.", { conflicts: ["at"] })
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, input) {
     const startTime = timestamp(options.at);
@@ -119,8 +120,13 @@ export const cli = new Command()
         }));
       } else {
         const client = new ListenBrainzClient({ userToken: options.token });
-        await client.listen(track, startTime);
-        console.info("Listen submitted");
+        if (options.now) {
+          await client.playingNow(track);
+          console.info("Playing now notification submitted");
+        } else {
+          await client.listen(track, startTime);
+          console.info("Listen submitted");
+        }
       }
     } else {
       throw new ValidationError(`Invalid metadata format "${input}"`);
