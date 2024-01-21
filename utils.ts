@@ -31,16 +31,14 @@ export class JsonLogger {
   #encoder: TextEncoder;
   #output: WritableStreamDefaultWriter<Uint8Array> | undefined;
 
-  /**
-   * @param path Path to the output file. Content will be appended if it exists.
-   */
-  constructor(readonly path: string | URL) {
+  /** Logger does nothing until {@linkcode JsonLogger.open} has been called. */
+  constructor() {
     this.#encoder = new TextEncoder();
   }
 
-  /** Opens the output file. Logger is a no-op without calling this. */
-  async open() {
-    const outputFile = await Deno.open(this.path, {
+  /** Opens the output file at the given path (in append mode). */
+  async open(path: string | URL) {
+    const outputFile = await Deno.open(path, {
       create: true,
       append: true,
     });
