@@ -59,13 +59,12 @@ export class ListenBrainzClient {
    *
    * @param track Metadata of the track.
    * @param listenedAt Playback start time of the track (Unix time in seconds).
-   * Defaults to the current time if not specified.
    */
-  listen(track: Track, listenedAt?: number) {
+  listen(track: Track, listenedAt: number) {
     return this.#submitListens({
       listen_type: "single",
       payload: [{
-        listened_at: listenedAt ?? now(),
+        listened_at: listenedAt,
         track_metadata: track,
       }],
     });
@@ -239,8 +238,3 @@ export type Query<T extends string | number = string> = Record<string, T>;
 type Payload<T> = {
   payload: T;
 };
-
-/** Returns the current time in Unix seconds. */
-function now(): number {
-  return Math.floor(Date.now() / 1000);
-}
