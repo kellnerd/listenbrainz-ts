@@ -60,6 +60,27 @@ export const cli = new Command()
     }
     await output.close();
   })
+  // Delete listens
+  .command("delete <path:file>", "Delete listens in a JSON file from history.")
+  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
+  .option("-p, --preview", "Show listens instead of deleting them.")
+  .action(async function (options, path) {
+    const listenFilter = getListenFilter(options.filter);
+    const listenSource = readListensFile(path);
+    const client = new ListenBrainzClient({ userToken: options.token });
+    let count = 0;
+    for await (const listen of listenSource) {
+      if (listenFilter(listen) && "recording_msid" in listen) {
+        if (options.preview) {
+          console.log(formatListen(listen));
+        } else {
+          await client.deleteListen(listen);
+          count++;
+        }
+      }
+    }
+    console.info(count, "listens deleted");
+  })
   // Import JSON
   .command("import <path:file>", "Import listens from the given JSON file.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
