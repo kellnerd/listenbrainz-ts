@@ -8,7 +8,7 @@ import {
   type Track,
 } from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
-import { chunk, readListensFile } from "../utils.ts";
+import { chunk, JsonLogger, readListensFile } from "../utils.ts";
 import {
   Command,
   ValidationError,
@@ -30,6 +30,10 @@ export const cli = new Command()
   .env("LB_USER=<name>", "ListenBrainz username.", { prefix: "LB_" })
   .option("-u, --user <name>", "ListenBrainz username, defaults to you.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
+  .option(
+    "-o, --output <path:file>",
+    "Write listens into to the given JSONL file (append to existing file).",
+  )
   .action(async function (options) {
     const listenFilter = getListenFilter(options.filter);
     const client = new ListenBrainzClient({ userToken: options.token });
@@ -41,12 +45,18 @@ export const cli = new Command()
         options.user = username;
       }
     }
+    const output = new JsonLogger();
+    if (options.output) {
+      await output.open(options.output);
+    }
     const { listens } = await client.getListens(options.user);
     for (const listen of listens) {
       if (listenFilter(listen)) {
         console.log(formatListen(listen));
+        await output.log(listen);
       }
     }
+    await output.close();
   })
   // Import JSON
   .command("import <path:file>", "Import listens from the given JSON file.")
