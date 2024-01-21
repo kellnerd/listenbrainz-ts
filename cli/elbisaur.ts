@@ -29,7 +29,9 @@ export const cli = new Command()
   .command("history", "Show the listening history of yourself or another user.")
   .env("LB_USER=<name>", "ListenBrainz username.", { prefix: "LB_" })
   .option("-u, --user <name>", "ListenBrainz username, defaults to you.")
+  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .action(async function (options) {
+    const listenFilter = getListenFilter(options.filter);
     const client = new ListenBrainzClient({ userToken: options.token });
     if (!options.user) {
       const username = await client.validateToken();
@@ -41,7 +43,9 @@ export const cli = new Command()
     }
     const { listens } = await client.getListens(options.user);
     for (const listen of listens) {
-      console.log(formatListen(listen));
+      if (listenFilter(listen)) {
+        console.log(formatListen(listen));
+      }
     }
   })
   // Import JSON
