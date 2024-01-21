@@ -1,7 +1,9 @@
 import { ListenBrainzClient } from "../client.ts";
 import {
+  type AdditionalTrackInfo,
   cleanListen,
   formatListen,
+  type Listen,
   setSubmissionClient,
   type Track,
 } from "../listen.ts";
@@ -44,25 +46,29 @@ export const cli = new Command()
   })
   // Import JSON
   .command("import <path:file>", "Import listens from the given JSON file.")
+  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, path) {
+    const listenFilter = getListenFilter(options.filter);
     const listenSource = readListensFile(path);
     if (options.preview) {
       for await (const listen of listenSource) {
-        console.log(formatListen(listen));
+        if (listenFilter(listen)) console.log(formatListen(listen));
       }
     } else {
       const client = new ListenBrainzClient({ userToken: options.token });
       let count = 0;
       for await (const listens of chunk(listenSource, 100)) {
-        const newListens = listens.map((listen) => {
-          const newListen = cleanListen(listen);
-          setSubmissionClient(newListen.track_metadata, {
-            name: "elbisaur (JSON importer)",
-            version: this.getVersion()!,
+        const newListens = listens
+          .filter(listenFilter)
+          .map((listen) => {
+            const newListen = cleanListen(listen);
+            setSubmissionClient(newListen.track_metadata, {
+              name: "elbisaur (JSON importer)",
+              version: this.getVersion()!,
+            });
+            return newListen;
           });
-          return newListen;
-        });
         await client.import(newListens);
         count += listens.length;
         console.info(count, "listens imported");
@@ -106,6 +112,28 @@ export const cli = new Command()
       throw new ValidationError(`Invalid metadata format "${input}"`);
     }
   });
+
+function getListenFilter(filterSpecification?: string) {
+  const conditions = filterSpecification?.split("&&").map((expression) => {
+    const condition = expression.match(
+      /^(?<key>\w+)(?<operator>==|!=)(?<value>.+)/,
+    )?.groups;
+    if (!condition) {
+      throw new ValidationError(`Invalid filter expression "${expression}"`);
+    }
+    return condition as { key: string; operator: "==" | "!="; value: string };
+  }) ?? [];
+
+  return function (listen: Listen) {
+    const track = listen.track_metadata;
+    return conditions.every(({ key, operator, value }) => {
+      const actualValue = track[key as keyof Track] ??
+        track.additional_info?.[key as keyof AdditionalTrackInfo];
+      if (operator === "==") return value == actualValue;
+      else return value != actualValue;
+    });
+  };
+}
 
 if (import.meta.main) {
   // Automatically load environment variables from `.env` file.
