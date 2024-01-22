@@ -18,7 +18,7 @@ import {
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.6.0")
+  .version("0.6.1")
   .description("Manage your ListenBrainz listens.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -31,6 +31,9 @@ export const cli = new Command()
   .command("history", "Show the listening history of yourself or another user.")
   .env("LB_USER=<name>", "ListenBrainz username.", { prefix: "LB_" })
   .option("-u, --user <name>", "ListenBrainz username, defaults to you.")
+  .option("-a, --after <datetime>", "Only get listens after the given time.")
+  .option("-b, --before <datetime>", "Only get listens before the given time.")
+  .option("-c, --count <N:integer>", "Desired number of results.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option(
     "-o, --output <path:file>",
@@ -51,7 +54,11 @@ export const cli = new Command()
     if (options.output) {
       await output.open(options.output);
     }
-    const { listens } = await client.getListens(options.user);
+    const { listens } = await client.getListens(options.user, {
+      min_ts: options.after ? timestamp(options.after) : undefined,
+      max_ts: options.before ? timestamp(options.before) : undefined,
+      count: options.count,
+    });
     for (const listen of listens) {
       if (listenFilter(listen)) {
         console.log(formatListen(listen));
