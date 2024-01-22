@@ -18,7 +18,7 @@ import {
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.6.1")
+  .version("0.6.2")
   .description("Manage your ListenBrainz listens.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -178,6 +178,11 @@ export const cli = new Command()
   .option("-a, --after <datetime>", "Only use listens after the given time.")
   .option("-b, --before <datetime>", "Only use listens before the given time.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
+  .option(
+    "-t, --time-offset <seconds:integer>",
+    "Add a time offset (in seconds) to all timestamps.",
+    { default: 0 },
+  )
   .action(async function (options, inputPath, outputPath) {
     const extension = extname(inputPath);
     if (extension === ".log") {
@@ -188,6 +193,7 @@ export const cli = new Command()
       await output.open(outputPath ?? inputPath + ".jsonl");
       for await (const listen of parseScrobblerLog(input)) {
         if (listenFilter(listen)) {
+          listen.listened_at += options.timeOffset;
           setSubmissionClient(listen.track_metadata, {
             name: "elbisaur (.scrobbler.log parser)",
             version: this.getVersion()!,
@@ -209,6 +215,11 @@ export const cli = new Command()
   .option("-a, --after <datetime>", "Only use listens after the given time.")
   .option("-b, --before <datetime>", "Only use listens before the given time.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
+  .option(
+    "-t, --time-offset <seconds:integer>",
+    "Add a time offset (in seconds) to all timestamps.",
+    { default: 0 },
+  )
   .action(async function (options, inputPath, outputPath) {
     const listenFilter = getListenFilter(options.filter, options);
     const editListen = getListenModifier(options.edit);
@@ -218,6 +229,7 @@ export const cli = new Command()
     for await (const listen of listenSource) {
       if (listenFilter(listen)) {
         editListen(listen);
+        listen.listened_at += options.timeOffset;
         await output.log(listen);
       }
     }
