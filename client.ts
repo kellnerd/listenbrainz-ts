@@ -160,9 +160,12 @@ export class ListenBrainzClient {
   async get(endpoint: string, query?: Query<string | number>): Promise<any> {
     const endpointUrl = new URL(endpoint, this.apiBaseUrl);
     if (query) {
-      // Hack to make TS accept query values of type `number`.
+      const definedParams = Object.entries(query).filter(
+        ([_key, value]) => value !== undefined,
+      ) as string[][];
+      // Hack above is needed to make TS accept query values of type `number`:
       // https://github.com/microsoft/TypeScript-DOM-lib-generator/issues/1568
-      endpointUrl.search = new URLSearchParams(query as Query).toString();
+      endpointUrl.search = new URLSearchParams(definedParams).toString();
     }
 
     const response = await this.#request(endpointUrl, {
