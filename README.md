@@ -23,7 +23,7 @@ In order to submit listens, you have to specify a user token which you can obtai
 The following example instantiates a ListenBrainz client with a token from an environment variable and submits a [playing now] notification for a track:
 
 ```ts
-import { ListenBrainzClient } from "https://deno.land/x/listenbrainz@v0.6.0/client.ts";
+import { ListenBrainzClient } from "https://deno.land/x/listenbrainz@v0.6.1/client.ts";
 
 const client = new ListenBrainzClient({ userToken: Deno.env.get("LB_TOKEN") });
 await client.playingNow({ artist_name: "John Doe", track_name: "Love Song" });
@@ -35,13 +35,13 @@ There is also a CLI which can be used to submit and manage listens (or as a more
 You can safely execute it with [Deno] to see its integrated help, it will prompt you for the necessary permissions:
 
 ```sh
-deno run https://deno.land/x/listenbrainz@v0.6.0/cli/elbisaur.ts
+deno run https://deno.land/x/listenbrainz@v0.6.1/cli/elbisaur.ts
 ```
 
 Of course you can also directly specify the permissions as arguments and even [install] it (by replacing `run` with `install`):
 
 ```sh
-deno install --allow-env=LB_USER,LB_TOKEN --allow-net=api.listenbrainz.org --allow-read --allow-write=. https://deno.land/x/listenbrainz@v0.6.0/cli/elbisaur.ts
+deno install --allow-env=LB_USER,LB_TOKEN --allow-net=api.listenbrainz.org --allow-read --allow-write=. https://deno.land/x/listenbrainz@v0.6.1/cli/elbisaur.ts
 ```
 
 Running `elbisaur` automatically tries to load environment variables from a `.env` file in your working directory, so you can comfortably safe your LB user token inside there.
