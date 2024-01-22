@@ -69,10 +69,12 @@ export const cli = new Command()
   })
   // Delete listens
   .command("delete <path:file>", "Delete listens in a JSON file from history.")
+  .option("-a, --after <datetime>", "Only drop listens after the given time.")
+  .option("-b, --before <datetime>", "Only drop listens before the given time.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option("-p, --preview", "Show listens instead of deleting them.")
   .action(async function (options, path) {
-    const listenFilter = getListenFilter(options.filter);
+    const listenFilter = getListenFilter(options.filter, options);
     const listenSource = readListensFile(path);
     const client = new ListenBrainzClient({ userToken: options.token });
     let count = 0;
@@ -90,10 +92,12 @@ export const cli = new Command()
   })
   // Import JSON
   .command("import <path:file>", "Import listens from the given JSON file.")
+  .option("-a, --after <datetime>", "Only use listens after the given time.")
+  .option("-b, --before <datetime>", "Only use listens before the given time.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, path) {
-    const listenFilter = getListenFilter(options.filter);
+    const listenFilter = getListenFilter(options.filter, options);
     const listenSource = readListensFile(path);
     if (options.preview) {
       for await (const listen of listenSource) {
@@ -171,11 +175,13 @@ export const cli = new Command()
 
     Supported format: .scrobbler.log
   `)
+  .option("-a, --after <datetime>", "Only use listens after the given time.")
+  .option("-b, --before <datetime>", "Only use listens before the given time.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .action(async function (options, inputPath, outputPath) {
     const extension = extname(inputPath);
     if (extension === ".log") {
-      const listenFilter = getListenFilter(options.filter);
+      const listenFilter = getListenFilter(options.filter, options);
       const inputFile = await Deno.open(inputPath);
       const input = inputFile.readable.pipeThrough(new TextDecoderStream());
       const output = new JsonLogger();
@@ -200,9 +206,11 @@ export const cli = new Command()
     "Modify listens from a JSON input file and write them into a JSONL file.",
   )
   .option("-e, --edit <expression>", "Edit track metadata.", { collect: true })
+  .option("-a, --after <datetime>", "Only use listens after the given time.")
+  .option("-b, --before <datetime>", "Only use listens before the given time.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .action(async function (options, inputPath, outputPath) {
-    const listenFilter = getListenFilter(options.filter);
+    const listenFilter = getListenFilter(options.filter, options);
     const editListen = getListenModifier(options.edit);
     const listenSource = readListensFile(inputPath);
     const output = new JsonLogger();
@@ -216,7 +224,10 @@ export const cli = new Command()
     await output.close();
   });
 
-function getListenFilter(filterSpecification?: string) {
+function getListenFilter(filterSpecification?: string, options: {
+  after?: string;
+  before?: string;
+} = {}) {
   const conditions = filterSpecification?.split("&&").map((expression) => {
     const condition = expression.match(
       /^(?<key>\w+)(?<operator>==|!=|\^)(?<value>.*)/,
@@ -230,8 +241,19 @@ function getListenFilter(filterSpecification?: string) {
       value: string;
     };
   }) ?? [];
+  const minTs = options.after ? timestamp(options.after) : 0;
+  if (isNaN(minTs)) {
+    throw new ValidationError(`Invalid date "${options.after}"`);
+  }
+  const maxTs = options.before ? timestamp(options.before) : Infinity;
+  if (isNaN(maxTs)) {
+    throw new ValidationError(`Invalid date "${options.before}"`);
+  }
 
   return function (listen: Listen) {
+    if (listen.listened_at <= minTs || listen.listened_at >= maxTs) {
+      return false;
+    }
     const track = listen.track_metadata;
     return conditions.every(({ key, operator, value }) => {
       const actualValue = track[key as keyof Track] ??
