@@ -212,7 +212,7 @@ export const cli = new Command()
 function getListenFilter(filterSpecification?: string) {
   const conditions = filterSpecification?.split("&&").map((expression) => {
     const condition = expression.match(
-      /^(?<key>\w+)(?<operator>==|!=)(?<value>.+)/,
+      /^(?<key>\w+)(?<operator>==|!=)(?<value>.*)/,
     )?.groups;
     if (!condition) {
       throw new ValidationError(`Invalid filter expression "${expression}"`);
@@ -234,7 +234,7 @@ function getListenFilter(filterSpecification?: string) {
 function getListenModifier(expressions?: string[]) {
   const edits = expressions?.map((expression) => {
     const edit = expression.match(
-      /^(?<key>\w+)(?<operator>=)(?<value>.+)/,
+      /^(?<key>\w+)(?<operator>=)(?<value>.*)/,
     )?.groups;
     if (!edit) {
       throw new ValidationError(`Invalid edit expression "${expression}"`);
