@@ -212,12 +212,16 @@ export const cli = new Command()
 function getListenFilter(filterSpecification?: string) {
   const conditions = filterSpecification?.split("&&").map((expression) => {
     const condition = expression.match(
-      /^(?<key>\w+)(?<operator>==|!=)(?<value>.*)/,
+      /^(?<key>\w+)(?<operator>==|!=|\^)(?<value>.*)/,
     )?.groups;
     if (!condition) {
       throw new ValidationError(`Invalid filter expression "${expression}"`);
     }
-    return condition as { key: string; operator: "==" | "!="; value: string };
+    return condition as {
+      key: string;
+      operator: "==" | "!=" | "^";
+      value: string;
+    };
   }) ?? [];
 
   return function (listen: Listen) {
@@ -225,8 +229,14 @@ function getListenFilter(filterSpecification?: string) {
     return conditions.every(({ key, operator, value }) => {
       const actualValue = track[key as keyof Track] ??
         track.additional_info?.[key as keyof AdditionalTrackInfo];
-      if (operator === "==") return value == actualValue;
-      else return value != actualValue;
+      switch (operator) {
+        case "==":
+          return value == actualValue;
+        case "!=":
+          return value != actualValue;
+        case "^": // XOR
+          return actualValue && !value || !actualValue && value;
+      }
     });
   };
 }
