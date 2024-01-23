@@ -39,6 +39,7 @@ export async function* parseScrobblerLog(
   // Parse the main content of the TSV document, headers are skipped as comments.
   const parser = new CsvParseStream({
     separator: "\t",
+    lazyQuotes: true,
     comment: "#",
     columns: [
       "artist_name",
