@@ -221,6 +221,10 @@ export const cli = new Command()
     "-x, --exclude-list <path:file>",
     "YAML file with lists of values which should be skipped for their key.",
   )
+  .option(
+    "-i, --include-list <path:file>",
+    "YAML file with lists of values which are allowed for their key.",
+  )
   .action(async function (options, path) {
     const listenFilter = await getListenFilter(options.filter, options);
     const listenSource = readListensFile(path);
@@ -269,6 +273,10 @@ export const cli = new Command()
     "YAML file with lists of values which should be skipped for their key.",
   )
   .option(
+    "-i, --include-list <path:file>",
+    "YAML file with lists of values which are allowed for their key.",
+  )
+  .option(
     "-t, --time-offset <seconds:integer>",
     "Add a time offset (in seconds) to all timestamps.",
     { default: 0 },
@@ -293,6 +301,7 @@ async function getListenFilter(filterSpecification?: string, options: {
   after?: string;
   before?: string;
   excludeList?: string;
+  includeList?: string;
 } = {}) {
   const conditions = filterSpecification?.split("&&").map((expression) => {
     const condition = expression.match(
@@ -322,6 +331,10 @@ async function getListenFilter(filterSpecification?: string, options: {
     await loadConditionsFromYaml(options.excludeList, "!=");
   }
 
+  if (options.includeList) {
+    await loadConditionsFromYaml(options.includeList, "==");
+  }
+
   async function loadConditionsFromYaml(path: string, operator: "==" | "!=") {
     const content = await Deno.readTextFile(path);
     const excludeMap = parseYaml(content, { filename: path }) as any;
@@ -345,6 +358,9 @@ async function getListenFilter(filterSpecification?: string, options: {
         info?.[key as keyof AdditionalTrackInfo];
       switch (operator) {
         case "==":
+          if (Array.isArray(value)) {
+            return value.some((value) => value == actualValue);
+          }
           return value == actualValue;
         case "!=":
           if (Array.isArray(value)) {
