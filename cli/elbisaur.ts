@@ -213,13 +213,18 @@ export const cli = new Command()
     "Track metadata keys to generate statistics for.",
     { default: ["artist_name", "release_name"] },
   )
+  .option("-a, --after <datetime>", "Only use listens after the given time.")
+  .option("-b, --before <datetime>", "Only use listens before the given time.")
+  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .action(async function (options, path) {
+    const listenFilter = getListenFilter(options.filter, options);
     const listenSource = readListensFile(path);
     const valueCounts: Record<string, Record<string, number>> = {};
     for (const key of options.keys) {
       valueCounts[key] = {};
     }
     for await (const listen of listenSource) {
+      if (!listenFilter(listen)) continue;
       const track = listen.track_metadata;
       const info = track.additional_info;
       for (const key of options.keys) {
