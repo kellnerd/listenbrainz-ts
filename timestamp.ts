@@ -22,13 +22,6 @@ export function timestamp(datetime?: string): number {
   return Math.floor(date.getTime() / 1000);
 }
 
-/** Returns the given timestamp as a formatted date time string. */
-export function formatTimestamp(timestamp: number): string {
-  const date = new Date(timestamp * 1000);
-  const isToday = dateOnlyString(new Date()) === dateOnlyString(date);
-  return isToday ? date.toLocaleTimeString() : date.toISOString();
-}
-
 /**
  * Takes a timestamp in seconds since the Unix epoch in local time (instead of
  * UTC as usual) and compensates the timezone offset.
@@ -43,9 +36,4 @@ export function localTimestampToUtc(localTimestamp: number): number {
   const date = new Date(localTimestamp * 1000);
   const offsetMinutes = date.getTimezoneOffset();
   return localTimestamp + 60 * offsetMinutes;
-}
-
-/** Returns only the `YYYY-MM-DD` section of the date string. */
-function dateOnlyString(date: Date) {
-  return date.toISOString().slice(0, 10);
 }
