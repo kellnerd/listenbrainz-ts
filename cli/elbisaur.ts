@@ -11,6 +11,7 @@ import { timestamp } from "../timestamp.ts";
 import { chunk, JsonLogger, readListensFile } from "../utils.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
+import { parse as parseYaml } from "https://deno.land/std@0.210.0/yaml/mod.ts";
 import {
   Command,
   ValidationError,
@@ -40,7 +41,7 @@ export const cli = new Command()
     "Write listens into to the given JSONL file (append to existing file).",
   )
   .action(async function (options) {
-    const listenFilter = getListenFilter(options.filter);
+    const listenFilter = await getListenFilter(options.filter);
     const client = new ListenBrainzClient({ userToken: options.token });
     if (!options.user) {
       const username = await client.validateToken();
@@ -74,7 +75,7 @@ export const cli = new Command()
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option("-p, --preview", "Show listens instead of deleting them.")
   .action(async function (options, path) {
-    const listenFilter = getListenFilter(options.filter, options);
+    const listenFilter = await getListenFilter(options.filter, options);
     const listenSource = readListensFile(path);
     const client = new ListenBrainzClient({ userToken: options.token });
     let count = 0;
@@ -97,7 +98,7 @@ export const cli = new Command()
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, path) {
-    const listenFilter = getListenFilter(options.filter, options);
+    const listenFilter = await getListenFilter(options.filter, options);
     const listenSource = readListensFile(path);
     if (options.preview) {
       for await (const listen of listenSource) {
@@ -186,7 +187,7 @@ export const cli = new Command()
   .action(async function (options, inputPath, outputPath) {
     const extension = extname(inputPath);
     if (extension === ".log") {
-      const listenFilter = getListenFilter(options.filter, options);
+      const listenFilter = await getListenFilter(options.filter, options);
       const inputFile = await Deno.open(inputPath);
       const input = inputFile.readable.pipeThrough(new TextDecoderStream());
       const output = new JsonLogger();
@@ -216,8 +217,12 @@ export const cli = new Command()
   .option("-a, --after <datetime>", "Only use listens after the given time.")
   .option("-b, --before <datetime>", "Only use listens before the given time.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
+  .option(
+    "-x, --exclude-list <path:file>",
+    "YAML file with lists of values which should be skipped for their key.",
+  )
   .action(async function (options, path) {
-    const listenFilter = getListenFilter(options.filter, options);
+    const listenFilter = await getListenFilter(options.filter, options);
     const listenSource = readListensFile(path);
     const valueCounts: Record<string, Record<string, number>> = {};
     for (const key of options.keys) {
@@ -260,12 +265,16 @@ export const cli = new Command()
   .option("-b, --before <datetime>", "Only use listens before the given time.")
   .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option(
+    "-x, --exclude-list <path:file>",
+    "YAML file with lists of values which should be skipped for their key.",
+  )
+  .option(
     "-t, --time-offset <seconds:integer>",
     "Add a time offset (in seconds) to all timestamps.",
     { default: 0 },
   )
   .action(async function (options, inputPath, outputPath) {
-    const listenFilter = getListenFilter(options.filter, options);
+    const listenFilter = await getListenFilter(options.filter, options);
     const editListen = getListenModifier(options.edit);
     const listenSource = readListensFile(inputPath);
     const output = new JsonLogger();
@@ -280,9 +289,10 @@ export const cli = new Command()
     await output.close();
   });
 
-function getListenFilter(filterSpecification?: string, options: {
+async function getListenFilter(filterSpecification?: string, options: {
   after?: string;
   before?: string;
+  excludeList?: string;
 } = {}) {
   const conditions = filterSpecification?.split("&&").map((expression) => {
     const condition = expression.match(
@@ -294,16 +304,34 @@ function getListenFilter(filterSpecification?: string, options: {
     return condition as {
       key: string;
       operator: "==" | "!=" | "^";
-      value: string;
+      value: string | string[];
     };
   }) ?? [];
+
   const minTs = options.after ? timestamp(options.after) : 0;
   if (isNaN(minTs)) {
     throw new ValidationError(`Invalid date "${options.after}"`);
   }
+
   const maxTs = options.before ? timestamp(options.before) : Infinity;
   if (isNaN(maxTs)) {
     throw new ValidationError(`Invalid date "${options.before}"`);
+  }
+
+  if (options.excludeList) {
+    await loadConditionsFromYaml(options.excludeList, "!=");
+  }
+
+  async function loadConditionsFromYaml(path: string, operator: "==" | "!=") {
+    const content = await Deno.readTextFile(path);
+    const excludeMap = parseYaml(content, { filename: path }) as any;
+    for (const [key, values] of Object.entries(excludeMap)) {
+      if (Array.isArray(values)) {
+        conditions.push({ key, operator, value: values });
+      } else {
+        throw new ValidationError(`"${key}" from "${path}" has to be a list`);
+      }
+    }
   }
 
   return function (listen: Listen) {
@@ -319,6 +347,9 @@ function getListenFilter(filterSpecification?: string, options: {
         case "==":
           return value == actualValue;
         case "!=":
+          if (Array.isArray(value)) {
+            return value.every((value) => value != actualValue);
+          }
           return value != actualValue;
         case "^": // XOR
           return actualValue && !value || !actualValue && value;
