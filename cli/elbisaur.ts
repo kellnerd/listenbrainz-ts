@@ -206,6 +206,45 @@ export const cli = new Command()
       throw new ValidationError(`Unsupported file format "${extension}"`);
     }
   })
+  // Listen statistics
+  .command("statistics <path:file>", "Show statistics for the given JSON file.")
+  .option(
+    "-k, --keys <keys:string[]>",
+    "Track metadata keys to generate statistics for.",
+    { default: ["artist_name", "release_name"] },
+  )
+  .action(async function (options, path) {
+    const listenSource = readListensFile(path);
+    const valueCounts: Record<string, Record<string, number>> = {};
+    for (const key of options.keys) {
+      valueCounts[key] = {};
+    }
+    for await (const listen of listenSource) {
+      const track = listen.track_metadata;
+      const info = track.additional_info;
+      for (const key of options.keys) {
+        const values = track[key as keyof Track] ??
+          info?.[key as keyof AdditionalTrackInfo];
+        const valueCountsForKey = valueCounts[key];
+        for (const value of makeValidIndexTypes(values)) {
+          if (valueCountsForKey[value]) {
+            valueCountsForKey[value]++;
+          } else {
+            valueCountsForKey[value] = 1;
+          }
+        }
+      }
+    }
+    // Print stats with values ordered by count in descending order.
+    for (const key of options.keys) {
+      console.log(`\n${key}:`);
+      const stats = Object.entries(valueCounts[key])
+        .sort(([_a, countA], [_b, countB]) => countB - countA);
+      for (const [value, count] of stats) {
+        console.log(count, "\t", value !== "" ? value : undefined);
+      }
+    }
+  })
   // Modify listens
   .command(
     "transform <input:file> <output:file>",
@@ -267,9 +306,10 @@ function getListenFilter(filterSpecification?: string, options: {
       return false;
     }
     const track = listen.track_metadata;
+    const info = track.additional_info;
     return conditions.every(({ key, operator, value }) => {
       const actualValue = track[key as keyof Track] ??
-        track.additional_info?.[key as keyof AdditionalTrackInfo];
+        info?.[key as keyof AdditionalTrackInfo];
       switch (operator) {
         case "==":
           return value == actualValue;
@@ -307,6 +347,14 @@ function getListenModifier(expressions?: string[]) {
       }
     }
   };
+}
+
+function makeValidIndexTypes(input: unknown): Array<string | number> {
+  if (typeof input === "string" || typeof input === "number") return [input];
+  if (typeof input === "boolean") return [input.toString()];
+  if (input === undefined) return [""];
+  if (Array.isArray(input)) return input.flatMap(makeValidIndexTypes);
+  return [];
 }
 
 if (import.meta.main) {
