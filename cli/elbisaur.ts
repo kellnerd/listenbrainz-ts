@@ -19,29 +19,46 @@ import {
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.6.2")
+  .version("0.6.3")
   .description("Manage your ListenBrainz listens.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
     required: true,
   })
+  .globalOption(
+    "-a, --after <datetime>",
+    "Only process tracks that were listened to after the given date/time.",
+  )
+  .globalOption(
+    "-b, --before <datetime>",
+    "Only process tracks that were listened to before the given date/time.",
+  )
+  .globalOption(
+    "-f, --filter <conditions>",
+    "Filter listens by track metadata (and additional info).",
+  )
+  .globalOption(
+    "-x, --exclude-list <path:file>",
+    "YAML file which maps track metadata keys to lists of forbidden values.",
+  )
+  .globalOption(
+    "-i, --include-list <path:file>",
+    "YAML file which maps track metadata keys to lists of allowed values.",
+  )
   .action(function () {
     this.showHelp();
   })
   // Listening history
   .command("history", "Show the listening history of yourself or another user.")
   .env("LB_USER=<name>", "ListenBrainz username.", { prefix: "LB_" })
-  .option("-u, --user <name>", "ListenBrainz username, defaults to you.")
-  .option("-a, --after <datetime>", "Only get listens after the given time.")
-  .option("-b, --before <datetime>", "Only get listens before the given time.")
-  .option("-c, --count <N:integer>", "Desired number of results.")
-  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
+  .option("-u, --user <name>", "ListenBrainz username, defaults to yours.")
+  .option("-c, --count <number:integer>", "Desired number of results (API).")
   .option(
     "-o, --output <path:file>",
     "Write listens into to the given JSONL file (append to existing file).",
   )
   .action(async function (options) {
-    const listenFilter = await getListenFilter(options.filter);
+    const listenFilter = await getListenFilter(options.filter, options);
     const client = new ListenBrainzClient({ userToken: options.token });
     if (!options.user) {
       const username = await client.validateToken();
@@ -70,9 +87,6 @@ export const cli = new Command()
   })
   // Delete listens
   .command("delete <path:file>", "Delete listens in a JSON file from history.")
-  .option("-a, --after <datetime>", "Only drop listens after the given time.")
-  .option("-b, --before <datetime>", "Only drop listens before the given time.")
-  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option("-p, --preview", "Show listens instead of deleting them.")
   .action(async function (options, path) {
     const listenFilter = await getListenFilter(options.filter, options);
@@ -93,9 +107,6 @@ export const cli = new Command()
   })
   // Import JSON
   .command("import <path:file>", "Import listens from the given JSON file.")
-  .option("-a, --after <datetime>", "Only use listens after the given time.")
-  .option("-b, --before <datetime>", "Only use listens before the given time.")
-  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, path) {
     const listenFilter = await getListenFilter(options.filter, options);
@@ -130,7 +141,12 @@ export const cli = new Command()
     Submit listen for the given track metadata.
       <metadata> = "<artist> - <title>"
   `)
-  .option("--at <datetime>", "Time when you started listening.")
+  .noGlobals() // except for `LB_TOKEN` which has to be redefined below
+  .env("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
+    prefix: "LB_",
+    required: true,
+  })
+  .option("--at <datetime>", "Date/Time when you started listening.")
   .option("--now", "Submit a playing now notification.", { conflicts: ["at"] })
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, input) {
@@ -176,9 +192,6 @@ export const cli = new Command()
 
     Supported format: .scrobbler.log
   `)
-  .option("-a, --after <datetime>", "Only use listens after the given time.")
-  .option("-b, --before <datetime>", "Only use listens before the given time.")
-  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
   .option(
     "-t, --time-offset <seconds:integer>",
     "Add a time offset (in seconds) to all timestamps.",
@@ -213,17 +226,6 @@ export const cli = new Command()
     "-k, --keys <keys:string[]>",
     "Track metadata keys to generate statistics for.",
     { default: ["artist_name", "release_name"] },
-  )
-  .option("-a, --after <datetime>", "Only use listens after the given time.")
-  .option("-b, --before <datetime>", "Only use listens before the given time.")
-  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
-  .option(
-    "-x, --exclude-list <path:file>",
-    "YAML file with lists of values which should be skipped for their key.",
-  )
-  .option(
-    "-i, --include-list <path:file>",
-    "YAML file with lists of values which are allowed for their key.",
   )
   .action(async function (options, path) {
     const listenFilter = await getListenFilter(options.filter, options);
@@ -265,17 +267,6 @@ export const cli = new Command()
     "Modify listens from a JSON input file and write them into a JSONL file.",
   )
   .option("-e, --edit <expression>", "Edit track metadata.", { collect: true })
-  .option("-a, --after <datetime>", "Only use listens after the given time.")
-  .option("-b, --before <datetime>", "Only use listens before the given time.")
-  .option("-f, --filter <conditions>", "Filter listens by track metadata.")
-  .option(
-    "-x, --exclude-list <path:file>",
-    "YAML file with lists of values which should be skipped for their key.",
-  )
-  .option(
-    "-i, --include-list <path:file>",
-    "YAML file with lists of values which are allowed for their key.",
-  )
   .option(
     "-t, --time-offset <seconds:integer>",
     "Add a time offset (in seconds) to all timestamps.",
