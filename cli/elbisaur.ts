@@ -19,7 +19,7 @@ import {
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.6.3")
+  .version("0.7.0-alpha")
   .description("Manage your ListenBrainz listens.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -296,14 +296,14 @@ async function getListenFilter(filterSpecification?: string, options: {
 } = {}) {
   const conditions = filterSpecification?.split("&&").map((expression) => {
     const condition = expression.match(
-      /^(?<key>\w+)(?<operator>==|!=|\^)(?<value>.*)/,
+      /^(?<key>\w+)(?<operator>==|!=|<=|<|>=|>|\^)(?<value>.*)/,
     )?.groups;
     if (!condition) {
       throw new ValidationError(`Invalid filter expression "${expression}"`);
     }
     return condition as {
       key: string;
-      operator: "==" | "!=" | "^";
+      operator: "==" | "!=" | "<=" | "<" | ">=" | ">" | "^";
       value: string | string[];
     };
   }) ?? [];
@@ -344,22 +344,42 @@ async function getListenFilter(filterSpecification?: string, options: {
     }
     const track = listen.track_metadata;
     const info = track.additional_info;
+
     return conditions.every(({ key, operator, value }) => {
       const actualValue = track[key as keyof Track] ??
         info?.[key as keyof AdditionalTrackInfo];
+
+      if (Array.isArray(actualValue)) {
+        console.warn(`Ignoring condition for "${key}" (has multiple values)`);
+        return true;
+      } else if (Array.isArray(value)) {
+        if (operator === "==") {
+          return value.some((value) => compare(actualValue, value) === 0);
+        } else if (operator === "!=") {
+          return value.every((value) => compare(actualValue, value) !== 0);
+        } else {
+          console.warn(
+            `Ignoring condition for "${key}" ("${operator}" does not accept multiple values)`,
+          );
+          return true;
+        }
+      }
+
       switch (operator) {
         case "==":
-          if (Array.isArray(value)) {
-            return value.some((value) => value == actualValue);
-          }
-          return value == actualValue;
+          return compare(actualValue, value) === 0;
         case "!=":
-          if (Array.isArray(value)) {
-            return value.every((value) => value != actualValue);
-          }
-          return value != actualValue;
+          return compare(actualValue, value) !== 0;
         case "^": // XOR
           return actualValue && !value || !actualValue && value;
+        case "<=":
+          return compare(actualValue, value) <= 0;
+        case "<":
+          return compare(actualValue, value) < 0;
+        case ">=":
+          return compare(actualValue, value) >= 0;
+        case ">":
+          return compare(actualValue, value) > 0;
       }
     });
   };
@@ -394,10 +414,30 @@ function getListenModifier(expressions?: string[]) {
 
 function makeValidIndexTypes(input: unknown): Array<string | number> {
   if (typeof input === "string" || typeof input === "number") return [input];
-  if (typeof input === "boolean") return [input.toString()];
+  if (typeof input === "boolean" || input === null) return [String(input)];
   if (input === undefined) return [""];
   if (Array.isArray(input)) return input.flatMap(makeValidIndexTypes);
   return [];
+}
+
+/**
+ * Compares two operands numerically (numbers) or lexicographically (strings).
+ * The type of comparison depends on the type of the first operand.
+ *
+ * Boolean operands are treated as numbers `0` and `1`.
+ * Values `null` and `undefined` are treated as empty strings.
+ * All other operand types are rejected with an error.
+ */
+function compare(actualValue: unknown, value: string): number {
+  if (typeof actualValue === "boolean") {
+    actualValue = Number(actualValue);
+  } else if (actualValue === undefined || actualValue === null) {
+    actualValue = "";
+  }
+
+  if (typeof actualValue === "number") return actualValue - Number(value);
+  if (typeof actualValue === "string") return actualValue.localeCompare(value);
+  throw new ValidationError(`Comparison is not allowed for ${actualValue}`);
 }
 
 if (import.meta.main) {
