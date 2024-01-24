@@ -10,6 +10,7 @@ import {
 import { timestamp } from "../timestamp.ts";
 import { chunk, JsonLogger, readListensFile } from "../utils.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
+import { parseSpotifyExtendedHistory } from "../parser/spotify.ts";
 import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
 import { parse as parseYaml } from "https://deno.land/std@0.210.0/yaml/mod.ts";
 import {
@@ -19,7 +20,7 @@ import {
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.7.0-alpha")
+  .version("0.7.0-beta")
   .description("Manage your ListenBrainz listens.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -190,7 +191,7 @@ export const cli = new Command()
     If no output file is specified, it will have the same name as the input,
     but with a ".jsonl" extension.
 
-    Supported format: .scrobbler.log
+    Supported formats: .scrobbler.log, Spotify Extended Streaming History (*.json)
   `)
   .option(
     "-t, --time-offset <seconds:integer>",
@@ -199,12 +200,12 @@ export const cli = new Command()
   )
   .action(async function (options, inputPath, outputPath) {
     const extension = extname(inputPath);
+    const listenFilter = await getListenFilter(options.filter, options);
+    const output = new JsonLogger();
+    await output.open(outputPath ?? inputPath + ".jsonl");
     if (extension === ".log") {
-      const listenFilter = await getListenFilter(options.filter, options);
       const inputFile = await Deno.open(inputPath);
       const input = inputFile.readable.pipeThrough(new TextDecoderStream());
-      const output = new JsonLogger();
-      await output.open(outputPath ?? inputPath + ".jsonl");
       for await (const listen of parseScrobblerLog(input)) {
         if (listenFilter(listen)) {
           listen.listened_at += options.timeOffset;
@@ -215,10 +216,22 @@ export const cli = new Command()
           await output.log(listen);
         }
       }
-      await output.close();
+    } else if (extension === ".json") {
+      const input = await Deno.readTextFile(inputPath);
+      for (const listen of parseSpotifyExtendedHistory(input)) {
+        if (listenFilter(listen)) {
+          listen.listened_at += options.timeOffset;
+          setSubmissionClient(listen.track_metadata, {
+            name: "elbisaur (Spotify Extended Streaming History parser)",
+            version: this.getVersion()!,
+          });
+          await output.log(listen);
+        }
+      }
     } else {
       throw new ValidationError(`Unsupported file format "${extension}"`);
     }
+    await output.close();
   })
   // Listen statistics
   .command("statistics <path:file>", "Show statistics for the given JSON file.")
