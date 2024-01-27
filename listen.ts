@@ -276,8 +276,14 @@ export function formatListen(listen: Listen): string {
   const { artist_name, track_name, release_name, additional_info } =
     listen.track_metadata;
 
+  const duration = additional_info?.duration ??
+    Math.round((additional_info?.duration_ms ?? 0) / 1000);
+  const seconds = duration % 60;
+  const minutes = (duration - seconds) / 60;
+
   return [
     new Date(listen.listened_at * 1000).toLocaleString("en-GB"),
+    `${minutes}:${seconds.toString().padStart(2, "0")}`,
     artist_name,
     track_name,
     release_name ?? "[standalone track]",
