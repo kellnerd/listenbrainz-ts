@@ -8,7 +8,7 @@ import {
   type Track,
 } from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
-import { chunk, JsonLogger, readListensFile } from "../utils.ts";
+import { JsonLogger, readListensFile } from "../utils.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { parseSpotifyExtendedHistory } from "../parser/spotify.ts";
 import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
@@ -20,7 +20,7 @@ import {
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.7.0-beta")
+  .version("0.7.0-beta.2")
   .description("Manage your ListenBrainz listens.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -118,20 +118,25 @@ export const cli = new Command()
       }
     } else {
       const client = new ListenBrainzClient({ userToken: options.token });
+      let listenBuffer: Listen[] = [];
       let count = 0;
-      for await (const listens of chunk(listenSource, 100)) {
-        const newListens = listens
-          .filter(listenFilter)
-          .map((listen) => {
-            const newListen = cleanListen(listen);
-            setSubmissionClient(newListen.track_metadata, {
-              name: "elbisaur (JSON importer)",
-              version: this.getVersion()!,
-            });
-            return newListen;
-          });
-        await client.import(newListens);
-        count += newListens.length;
+      for await (const listen of listenSource) {
+        if (!listenFilter(listen)) continue;
+        const newListen = cleanListen(listen);
+        setSubmissionClient(newListen.track_metadata, {
+          name: "elbisaur (JSON importer)",
+          version: this.getVersion()!,
+        });
+        if (listenBuffer.push(newListen) >= 100) {
+          await client.import(listenBuffer);
+          count += listenBuffer.length;
+          console.info(count, "listens imported");
+          listenBuffer = [];
+        }
+      }
+      if (listenBuffer.length) {
+        await client.import(listenBuffer);
+        count += listenBuffer.length;
         console.info(count, "listens imported");
       }
     }
