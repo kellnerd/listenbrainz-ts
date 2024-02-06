@@ -17,11 +17,17 @@ import {
   Command,
   ValidationError,
 } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/mod.ts";
+// Use internal colors of cliffy, although this import may break in the future.
+// If this ever happens, we would want to update our highlighting colors anyway.
+import {
+  brightBlue as opt,
+  brightMagenta as cmd,
+} from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/deps.ts";
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.7.0-beta.2")
-  .description("Manage your ListenBrainz listens.")
+  .version("0.7.0")
+  .description("Manage your ListenBrainz listens and process listen dumps.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
     required: true,
@@ -196,12 +202,30 @@ export const cli = new Command()
     If no output file is specified, it will have the same name as the input,
     but with a ".jsonl" extension.
 
+    Skipped listens are not discarded by default, but this should usually be
+    done using a filter option, see examples.
+
     Supported formats: .scrobbler.log, Spotify Extended Streaming History (*.json)
   `)
   .option(
     "-t, --time-offset <seconds:integer>",
     "Add a time offset (in seconds) to all timestamps.",
     { default: 0 },
+  )
+  .example(
+    "Rockbox log",
+    `
+    Parse .scrobbler.log file and discard all skipped scrobbles.
+    ${cmd(`elbisaur parse .scrobbler.log`)} ${opt("--filter skipped!=1")}`,
+  )
+  .example(
+    "Spotify history",
+    `
+    Parse Spotify Extended Streaming History and discard all skipped streams.
+    Only keep streams which were played for at least 30 seconds as 'skipped' is not always set.
+    ${cmd("elbisaur parse Streaming_History_Audio_2024.json")} ${
+      opt("--filter 'skipped!=1&&ms_played>=30e3'")
+    }`,
   )
   .action(async function (options, inputPath, outputPath) {
     const extension = extname(inputPath);

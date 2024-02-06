@@ -5,6 +5,10 @@ import { timestamp } from "../timestamp.ts";
  * Parses the content from a Spotify Extended Streaming History JSON file.
  *
  * Accepts a serialized array of Spotify streams as input.
+ *
+ * Also yields skipped listens which should generally not be submitted.
+ * These can be detected by their `track_metadata.additional_info` attributes
+ * `skipped`, `reason_end` and a too short `duration_ms`.
  */
 export function* parseSpotifyExtendedHistory(input: string): Generator<Listen> {
   const json = JSON.parse(input);
