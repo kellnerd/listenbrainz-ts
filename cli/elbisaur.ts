@@ -385,11 +385,11 @@ async function getListenFilter(filterSpecification?: string, options: {
       return false;
     }
     const track = listen.track_metadata;
-    const info = track.additional_info;
+    const info = track.additional_info ?? {};
 
     return conditions.every(({ key, operator, value }) => {
       const actualValue = track[key as keyof Track] ??
-        info?.[key as keyof AdditionalTrackInfo];
+        info[key as keyof AdditionalTrackInfo];
 
       if (Array.isArray(actualValue)) {
         console.warn(`Ignoring condition for "${key}" (has multiple values)`);

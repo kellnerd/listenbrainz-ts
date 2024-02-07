@@ -272,23 +272,42 @@ export function cleanListen(input: Listen | InsertedListen): Listen {
 }
 
 /** Returns a string representation of the given listen (for logging). */
-export function formatListen(listen: Listen): string {
-  const { artist_name, track_name, release_name, additional_info } =
-    listen.track_metadata;
+export function formatListen(
+  listen: Listen,
+  template: string = defaultListenTemplate,
+): string {
+  const meta = listen.track_metadata;
+  const info = meta.additional_info ?? {};
 
-  const duration = additional_info?.duration ??
-    Math.round((additional_info?.duration_ms ?? 0) / 1000);
-  const seconds = duration % 60;
-  const minutes = (duration - seconds) / 60;
+  return template.replaceAll(
+    /%(\w+)%/g,
+    (_, key) => {
+      if (key === "date") {
+        return new Date(listen.listened_at * 1000).toLocaleString("en-GB");
+      } else if (key === "duration") {
+        return formatDuration(
+          info.duration ??
+            (info.duration_ms ? info.duration_ms / 1000 : undefined),
+        );
+      } else {
+        const value = meta[key as keyof Track] ??
+          info[key as keyof AdditionalTrackInfo];
+        return value?.toString() ?? "";
+      }
+    },
+  );
+}
 
-  return [
-    new Date(listen.listened_at * 1000).toLocaleString("en-GB"),
-    `${minutes}:${seconds.toString().padStart(2, "0")}`,
-    artist_name,
-    track_name,
-    release_name ?? "[standalone track]",
-    `#${additional_info?.tracknumber ?? 0}`,
-  ].join(" | ");
+export const defaultListenTemplate =
+  "%date% | %duration% | %artist_name% | %track_name% | %release_name% | #%tracknumber%";
+
+/** Formats the given duration in seconds as `mm:ss`. */
+export function formatDuration(seconds?: number): string {
+  if (seconds) {
+    return `${Math.floor(seconds / 60)}:${padNum(seconds % 60, 2)}`;
+  } else {
+    return "?:??";
+  }
 }
 
 /** Checks whether the given JSON is a listen. */
@@ -315,4 +334,8 @@ export function setSubmissionClient(
     info.submission_client = client.name;
     info.submission_client_version = client.version;
   }
+}
+
+function padNum(value: number, maxLength: number) {
+  return value.toFixed().padStart(maxLength, "0");
 }
