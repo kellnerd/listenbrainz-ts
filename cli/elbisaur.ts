@@ -32,6 +32,11 @@ export const cli = new Command()
     prefix: "LB_",
     required: true,
   })
+  .globalEnv(
+    "ELBISAUR_LISTEN_TEMPLATE=<template>",
+    "Template string to format a logged listen.",
+    { prefix: "ELBISAUR_" },
+  )
   .globalOption(
     "-a, --after <datetime>",
     "Only process tracks that were listened to after the given date/time.",
@@ -86,7 +91,7 @@ export const cli = new Command()
     });
     for (const listen of listens) {
       if (listenFilter(listen)) {
-        console.log(formatListen(listen));
+        console.log(formatListen(listen, options.listenTemplate));
         await output.log(listen);
       }
     }
@@ -103,7 +108,7 @@ export const cli = new Command()
     for await (const listen of listenSource) {
       if (listenFilter(listen) && "recording_msid" in listen) {
         if (options.preview) {
-          console.log(formatListen(listen));
+          console.log(formatListen(listen, options.listenTemplate));
         } else {
           await client.deleteListen(listen);
           count++;
@@ -120,7 +125,9 @@ export const cli = new Command()
     const listenSource = readListensFile(path);
     if (options.preview) {
       for await (const listen of listenSource) {
-        if (listenFilter(listen)) console.log(formatListen(listen));
+        if (listenFilter(listen)) {
+          console.log(formatListen(listen, options.listenTemplate));
+        }
       }
     } else {
       const client = new ListenBrainzClient({ userToken: options.token });
@@ -177,10 +184,13 @@ export const cli = new Command()
         version: this.getVersion()!,
       });
       if (options.preview) {
-        console.log(formatListen({
-          listened_at: startTime,
-          track_metadata: track,
-        }));
+        console.log(
+          formatListen({
+            listened_at: startTime,
+            track_metadata: track,
+          }),
+          options.listenTemplate,
+        );
       } else {
         const client = new ListenBrainzClient({ userToken: options.token });
         if (options.now) {
