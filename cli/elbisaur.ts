@@ -217,6 +217,7 @@ export const cli = new Command()
 
     Supported formats: .scrobbler.log, Spotify Extended Streaming History (*.json)
   `)
+  .option("-p, --preview", "Show listens instead of writing them.")
   .option(
     "-t, --time-offset <seconds:integer>",
     "Add a time offset (in seconds) to all timestamps.",
@@ -241,7 +242,9 @@ export const cli = new Command()
     const extension = extname(inputPath);
     const listenFilter = await getListenFilter(options.filter, options);
     const output = new JsonLogger();
-    await output.open(outputPath ?? inputPath + ".jsonl");
+    if (!options.preview) {
+      await output.open(outputPath ?? inputPath + ".jsonl");
+    }
     if (extension === ".log") {
       const inputFile = await Deno.open(inputPath);
       const input = inputFile.readable.pipeThrough(new TextDecoderStream());
@@ -252,7 +255,11 @@ export const cli = new Command()
             name: "elbisaur (.scrobbler.log parser)",
             version: this.getVersion()!,
           });
-          await output.log(listen);
+          if (options.preview) {
+            console.log(formatListen(listen, options.listenTemplate));
+          } else {
+            await output.log(listen);
+          }
         }
       }
     } else if (extension === ".json") {
@@ -264,7 +271,11 @@ export const cli = new Command()
             name: "elbisaur (Spotify Extended Streaming History parser)",
             version: this.getVersion()!,
           });
-          await output.log(listen);
+          if (options.preview) {
+            console.log(formatListen(listen, options.listenTemplate));
+          } else {
+            await output.log(listen);
+          }
         }
       }
     } else {
