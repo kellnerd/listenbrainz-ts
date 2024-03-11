@@ -19,6 +19,7 @@ export function* parseSpotifyExtendedHistory(input: string): Generator<Listen> {
 
   let index = 0;
   for (const stream of json) {
+    // TODO: Add option to skip errors and log warnings
     if (!isSpotifyStream(stream)) {
       throw new TypeError(`Item at index ${index} is no Spotify stream`);
     } else if (
@@ -34,26 +35,35 @@ export function* parseSpotifyExtendedHistory(input: string): Generator<Listen> {
     const calculatedStartTime = endTime - secondsPlayed;
 
     /**
-     * Prefer `offline_timestamp` if it is present, it seems to be more accurate,
-     * e.g. for `"unexpected-exit"` the value of `ts` seems to be the next time
-     * when Spotify was opened again instead of the end of playback.
+     * First use the calculated start timestamp (end time minus playback duration).
+     *
+     * In some cases this time is completely inaccurate because the logged end
+     * timestamp is wrong and does not indicate when the track stopped playing.
+     * It appears to be the next time when Spotify was opened again after the
+     * app or the web player had been closed unexpectedly (`"unexpected-exit"`).
+     *
+     * In those cases the so called "offline" timestamp has proven to be useful
+     * as an alternative value to be considered.
+     * Despite its name, it is not exclusively used to track offline playback.
+     * While it seems to be a few (usually -3 to 1) seconds off in general, it
+     * is pretty accurate for those cases where the logged end time is bogus.
      */
-    let startTime = stream.offline_timestamp;
-    if (startTime) {
-      // Timestamp sometimes given in milliseconds, convert to seconds
-      if (startTime > 1e11) startTime /= 1000;
-      if (Math.abs(calculatedStartTime - startTime) > 10) {
-        console.debug(
-          stream.ts,
-          "calculated vs. offline:",
-          calculatedStartTime,
-          startTime,
-          stream.reason_end,
-          stream.master_metadata_track_name,
-        );
-      }
-    } else {
-      startTime = calculatedStartTime;
+    let startTime = calculatedStartTime;
+    let offlineTime = stream.offline_timestamp;
+
+    // Timestamp sometimes stored in milliseconds, convert those to seconds.
+    if (offlineTime > 1e11) {
+      offlineTime /= 1000;
+    }
+
+    // Find outliers by calculating the delay between two alternative timestamps.
+    const offlineTimeDelay = offlineTime &&
+      // Fractional digits (milliseconds from above) are not of interest here.
+      Math.round(offlineTime - calculatedStartTime);
+
+    // Use offline timestamp if it is present and the calculated delay is large.
+    if (offlineTime && Math.abs(offlineTimeDelay) > 10) {
+      startTime = offlineTime;
     }
 
     const listen: Listen = {
@@ -71,11 +81,13 @@ export function* parseSpotifyExtendedHistory(input: string): Generator<Listen> {
           reason_start: stream.reason_start,
           reason_end: stream.reason_end,
           skipped: stream.skipped,
+          // TODO: Add option to include the properties below (or not)
           offline: stream.offline,
           incognito_mode: stream.incognito_mode,
           playing_stopped_date: stream.ts,
           playing_stopped_ts: endTime,
-          offline_ts: stream.offline_timestamp,
+          offline_ts: offlineTime,
+          offline_ts_delay: offlineTimeDelay,
         },
       },
     };
@@ -125,11 +137,12 @@ export interface SpotifyStream {
   reason_end:
     | SpotifyStreamReason
     | "endplay"
+    // For the following 3 reasons, "offline" timestamp seems to be more accurate:
     | "logout"
-    | "unexpected-exit"
+    | "unexpected-exit" // still playing
     | "unexpected-exit-while-paused"
     | string
-    | null;
+    | null; // for older listens
   /** Indicates if shuffle mode was used when playing the track. */
   shuffle: null | true | false;
   /** Indicates if the user skipped to the next song. */
