@@ -31,8 +31,7 @@ export function* parseSpotifyExtendedHistory(input: string): Generator<Listen> {
 
     const spotifyUrl = spotifyUriToUrl(stream.spotify_track_uri).href;
     const endTime = timestamp(stream.ts);
-    const secondsPlayed = Math.round(stream.ms_played / 1000);
-    const calculatedStartTime = endTime - secondsPlayed;
+    const calculatedStartTime = Math.round(endTime - stream.ms_played / 1000);
 
     /**
      * First use the calculated start timestamp (end time minus playback duration).
@@ -53,13 +52,11 @@ export function* parseSpotifyExtendedHistory(input: string): Generator<Listen> {
 
     // Timestamp sometimes stored in milliseconds, convert those to seconds.
     if (offlineTime > 1e11) {
-      offlineTime /= 1000;
+      offlineTime = Math.round(offlineTime / 1000);
     }
 
     // Find outliers by calculating the delay between two alternative timestamps.
-    const offlineTimeDelay = offlineTime &&
-      // Fractional digits (milliseconds from above) are not of interest here.
-      Math.round(offlineTime - calculatedStartTime);
+    const offlineTimeDelay = offlineTime && (offlineTime - calculatedStartTime);
 
     // Use offline timestamp if it is present and the calculated delay is large.
     if (offlineTime && Math.abs(offlineTimeDelay) > 10) {
