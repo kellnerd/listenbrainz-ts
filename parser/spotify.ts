@@ -1,6 +1,12 @@
 import { type Listen } from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
 
+/** Options for the Spotify parser. */
+export interface SpotifyParserOptions {
+  /** Listens include additional info properties which might help with debugging. */
+  includeDebugInfo?: boolean;
+}
+
 /**
  * Parses the content from a Spotify Extended Streaming History JSON file.
  *
@@ -10,7 +16,10 @@ import { timestamp } from "../timestamp.ts";
  * These can be detected by their `track_metadata.additional_info` attributes
  * `skipped`, `reason_end` and a too short `duration_ms`.
  */
-export function* parseSpotifyExtendedHistory(input: string): Generator<Listen> {
+export function* parseSpotifyExtendedHistory(
+  input: string,
+  options: SpotifyParserOptions = {},
+): Generator<Listen> {
   const json = JSON.parse(input);
 
   if (!Array.isArray(json)) {
@@ -74,20 +83,23 @@ export function* parseSpotifyExtendedHistory(input: string): Generator<Listen> {
           music_service: "spotify.com",
           spotify_id: spotifyUrl,
           origin_url: spotifyUrl,
-          // Additional fields for debugging, might be removed in a later version.
+          // Additional fields for filtering, might be removed in a later version.
           reason_start: stream.reason_start,
           reason_end: stream.reason_end,
           skipped: stream.skipped,
-          // TODO: Add option to include the properties below (or not)
-          offline: stream.offline,
           incognito_mode: stream.incognito_mode,
-          playing_stopped_date: stream.ts,
-          playing_stopped_ts: endTime,
-          offline_ts: offlineTime,
-          offline_ts_delay: offlineTimeDelay,
         },
       },
     };
+
+    if (options.includeDebugInfo) {
+      const info = listen.track_metadata.additional_info!;
+      info.playing_stopped_date = stream.ts;
+      info.playing_stopped_ts = endTime;
+      info.offline = stream.offline;
+      info.offline_ts = offlineTime;
+      info.offline_ts_delay = offlineTimeDelay;
+    }
 
     yield listen;
     index++;

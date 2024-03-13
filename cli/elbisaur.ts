@@ -217,6 +217,7 @@ export const cli = new Command()
 
     Supported formats: .scrobbler.log, Spotify Extended Streaming History (*.json)
   `)
+  .option("-d, --debug", "Include debugging info in listens (if available).")
   .option("-p, --preview", "Show listens instead of writing them.")
   .option(
     "-t, --time-offset <seconds:integer>",
@@ -264,7 +265,10 @@ export const cli = new Command()
       }
     } else if (extension === ".json") {
       const input = await Deno.readTextFile(inputPath);
-      for (const listen of parseSpotifyExtendedHistory(input)) {
+      const history = parseSpotifyExtendedHistory(input, {
+        includeDebugInfo: options.debug,
+      });
+      for (const listen of history) {
         if (listenFilter(listen)) {
           listen.listened_at += options.timeOffset;
           setSubmissionClient(listen.track_metadata, {
