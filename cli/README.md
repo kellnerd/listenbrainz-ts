@@ -155,8 +155,21 @@ Parse Spotify history file and only keep streams which were not skipped *and* we
 elbisaur parse Streaming_History_Audio_2024.json --filter "skipped!=1&&ms_played>=30e3"
 ```
 
+While some skipped listens can be detected by their `reason_end` properties, bad listens can also have a reason of `trackdone` although Spotify failed to play them (playback duration is only a second or two).
+
 You might have to experiment with the filter options a bit or do multiple passes to get optimal results.
 Limiting the output by specifying a time range (`-a, --after` and `-b, --before`) makes reviewing the results (using the `-p, --preview` option) a lot more comfortable.
+
+> [!NOTE]
+> This parser calculates the correct listen (start) timestamp from stream end time and duration.
+>
+> In some cases this time is completely inaccurate because the logged end timestamp is wrong and does not indicate when the track stopped playing.
+> It appears to be the next time when Spotify was opened again after the app or the web player had been closed unexpectedly.
+>
+> In those cases the parser uses the so called “offline” timestamp which, despite its name, is not exclusively used to track offline playback.
+> While it seems to be a few seconds off in general, it is pretty accurate for those cases where the logged end time is bogus.
+>
+> You can specify the `-d, --debug` flag to include all possible timestamp data in the `additional_info` properties of each parsed listen.
 
 ### Modifying Listens
 
