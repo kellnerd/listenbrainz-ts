@@ -89,6 +89,44 @@ Download your listens for all tracks by Jane Doe to which you listened on 17th J
 elbisaur history -f "artist_name==Jane Doe" -a 2024-01-17 -b 2024-01-18 -c 200 -o jane.jsonl
 ```
 
+### Importing Listens
+
+Importing listens is straightforward if you have a JSON file which contains one or multiple listens.
+Such a file can be a ListenBrainz listening history export, the result of another elbisaur command or the content from a ListenBrainz “Inspect listen” dialog.
+
+Before running the actual `import` command itself, it is recommended to run the same command with the `-p, --preview` flag to see which listens would be imported:
+
+```sh
+elbisaur import listens.json --preview
+```
+
+Only if you are satisfied with what you see, you should proceed:
+
+```sh
+elbisaur import listens.json
+```
+
+### Deleting Listens
+
+If you want to delete some of your listens, you need to obtain a JSON file which contains the bad listens.
+You can either use a filtered listening history export for this or create the file using `elbisaur history`.
+
+The file not only contains the necessary data to send deletion requests to the API, it can also serve as a backup in case you accidentally delete the wrong listens.
+
+Before running the actual `delete` command itself, it is recommended to run the same command with the `-p, --preview` flag to see which listens would be deleted:
+
+```sh
+elbisaur delete bad-listens.jsonl --preview
+```
+
+Only if you are satisfied with what you see, you should proceed:
+
+```sh
+elbisaur delete bad-listens.jsonl
+```
+
+Please note that this only marks listens for deletion currently and that it takes until the full hour before the deleted listens finally disappear from ListenBrainz.
+
 [Deno]: https://deno.com/
 [install]: https://docs.deno.com/runtime/manual/tools/script_installer
 [ListenBrainz settings]: https://listenbrainz.org/settings/
