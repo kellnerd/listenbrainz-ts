@@ -21,7 +21,7 @@ As this library only makes use of web standards, it is also compatible with mode
 
 ## Usage
 
-In order to submit listens, you have to specify a user token which you can obtain from your [ListenBrainz profile].
+In order to submit listens, you have to specify a user token which you can obtain from your [ListenBrainz settings] page.
 
 The following example instantiates a ListenBrainz client with a token from an environment variable and submits a [playing now] notification for a track:
 
@@ -63,7 +63,7 @@ The following parsers are available in the `listenbrainz/parser/*.ts` submodules
 [elbisaur]: ./cli/README.md
 [ListenBrainz]: https://listenbrainz.org/
 [ListenBrainz API]: https://listenbrainz.readthedocs.io/en/latest/users/api/index.html
-[ListenBrainz profile]: https://listenbrainz.org/profile/
+[ListenBrainz settings]: https://listenbrainz.org/settings/
 [LB listening history export]: https://listenbrainz.org/profile/export/
 [playing now]: https://listenbrainz.org/listening-now/
 [Rockbox]: https://www.rockbox.org/wiki/LastFMLog
