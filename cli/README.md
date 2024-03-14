@@ -127,6 +127,37 @@ elbisaur delete bad-listens.jsonl
 
 Please note that this only marks listens for deletion currently and that it takes until the full hour before the deleted listens finally disappear from ListenBrainz.
 
+### Parsing .scobbbler.log Files
+
+Parse a `.scrobbler.log` file (for example from a Rockbox player) and discard all scrobbles which are marked as skipped:
+
+```sh
+elbisaur parse .scrobbler.log --filter skipped!=1
+```
+
+You can also run the parser again and write skipped scrobbles to a separate file for manual review:
+
+```sh
+elbisaur parse .scrobbler.log --filter skipped==1 skipped-listens.jsonl
+```
+
+> [!NOTE]
+> Timestamps are automatically converted from your local timezone to UTC as Rockbox players are usually not timezone-aware.
+
+### Parsing Spotify Extended Streaming History
+
+If you have requested your Extended Streaming History from Spotify, you receive one or more `Streaming_History_Audio_*.json` files.
+These files can be parsed with elbisaur, but they also contain skipped streams which are sometimes not marked as such.
+
+Parse Spotify history file and only keep streams which were not skipped *and* were played for at least 30 seconds:
+
+```sh
+elbisaur parse Streaming_History_Audio_2024.json --filter "skipped!=1&&ms_played>=30e3"
+```
+
+You might have to experiment with the filter options a bit or do multiple passes to get optimal results.
+Limiting the output by specifying a time range (`-a, --after` and `-b, --before`) makes reviewing the results (using the `-p, --preview` option) a lot more comfortable.
+
 [Deno]: https://deno.com/
 [install]: https://docs.deno.com/runtime/manual/tools/script_installer
 [ListenBrainz settings]: https://listenbrainz.org/settings/
