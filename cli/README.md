@@ -158,6 +158,26 @@ elbisaur parse Streaming_History_Audio_2024.json --filter "skipped!=1&&ms_played
 You might have to experiment with the filter options a bit or do multiple passes to get optimal results.
 Limiting the output by specifying a time range (`-a, --after` and `-b, --before`) makes reviewing the results (using the `-p, --preview` option) a lot more comfortable.
 
+### Modifying Listens
+
+Correct a typo in the release name property of a few listens from a JSON file:
+
+```sh
+elbisaur transform input.jsonl -f "release_name==Exmaple" -e "release_name=Example" fixed.jsonl
+```
+
+Inject (or correct) the release MBID for all listens with a given release name:
+
+```sh
+elbisaur transform input.jsonl -f "release_name==Example" -e "release_mbid=bf9e91ea-8029-4a04-a26a-224e00a83266" output.jsonl
+```
+
+Compensate a wrong listen time offset of an hour for all listens (by adding 3600 seconds):
+
+```sh
+elbisaur transform wrong-time.jsonl -t 3600 correct-time.jsonl
+```
+
 [Deno]: https://deno.com/
 [install]: https://docs.deno.com/runtime/manual/tools/script_installer
 [ListenBrainz settings]: https://listenbrainz.org/settings/
