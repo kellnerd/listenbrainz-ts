@@ -2,9 +2,10 @@
 
 [Deno] library to access the [ListenBrainz API], written in TypeScript.
 
-You can use it to submit your listening history to your [ListenBrainz] account.
+You can use it to submit your listening history to your [ListenBrainz] account with your own apps.
 
-As this library only makes use of web standards, it is also compatible with modern browsers (after transpilation to JavaScript).
+For end users, there is also the [elbisaur] CLI, which exposes many features of the library to the command line.
+In addition to showcasing the usage of the API client, it also has advanced features to manage listens.
 
 ## Features
 
@@ -15,6 +16,8 @@ As this library only makes use of web standards, it is also compatible with mode
 - Provides generic `GET` and `POST` methods for (yet) unsupported API endpoints
 - Includes additional [parsers](#parsers) to extract listens from text formats
 - Ships with type definitions and inline [documentation]
+
+As this library only makes use of web standards, it is also compatible with modern browsers (after transpilation to JavaScript).
 
 ## Usage
 
@@ -28,23 +31,6 @@ import { ListenBrainzClient } from "https://deno.land/x/listenbrainz@v0.7.0/clie
 const client = new ListenBrainzClient({ userToken: Deno.env.get("LB_TOKEN") });
 await client.playingNow({ artist_name: "John Doe", track_name: "Love Song" });
 ```
-
-## elbisaur
-
-`elbisaur` is a CLI which can be used to submit and manage listens (or as a more advanced example of the library’s usage).
-You can safely execute it with [Deno] to see its integrated help, it will prompt you for the necessary permissions:
-
-```sh
-deno run https://deno.land/x/listenbrainz/cli/elbisaur.ts
-```
-
-Of course you can also directly specify the permissions as arguments and even [install] it (by replacing `run` with `install`):
-
-```sh
-deno install --allow-env=LB_USER,LB_TOKEN,ELBISAUR_LISTEN_TEMPLATE --allow-net=api.listenbrainz.org --allow-read --allow-write=. https://deno.land/x/listenbrainz/cli/elbisaur.ts
-```
-
-Running `elbisaur` automatically tries to load environment variables from a `.env` file in your working directory, so you can comfortably safe your LB user token inside there.
 
 ## Parsers
 
@@ -68,9 +54,13 @@ The following parsers are available in the `listenbrainz/parser/*.ts` submodules
   - Makes use of the “offline” timestamp to detect extreme outliers where Spotify has only logged a stream as ended when the app was next opened.
   - Skipped listens can be detected by their `track_metadata.additional_info` attributes `skipped`, `reason_end` and a too short `duration_ms`.
 
+## elbisaur
+
+`elbisaur` is a CLI which can be used to submit and manage listens. [Learn more][elbisaur].
+
 [Deno]: https://deno.com/
 [documentation]: https://deno.land/x/listenbrainz?doc
-[install]: https://docs.deno.com/runtime/manual/tools/script_installer
+[elbisaur]: ./cli/README.md
 [ListenBrainz]: https://listenbrainz.org/
 [ListenBrainz API]: https://listenbrainz.readthedocs.io/en/latest/users/api/index.html
 [ListenBrainz profile]: https://listenbrainz.org/profile/
