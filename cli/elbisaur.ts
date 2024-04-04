@@ -26,7 +26,7 @@ import {
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.7.0")
+  .version("0.8.0-dev")
   .description("Manage your ListenBrainz listens and process listen dumps.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -349,6 +349,11 @@ export const cli = new Command()
       if (listenFilter(listen)) {
         editListen(listen);
         listen.listened_at += options.timeOffset;
+        setSubmissionClient(listen.track_metadata, {
+          name: "elbisaur (listen transformer)",
+          version: this.getVersion()!,
+          overwrite: true,
+        });
         await output.log(listen);
       }
     }
