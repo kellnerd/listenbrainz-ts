@@ -32,16 +32,18 @@ export function parseMusicBrainzRelease(
 
   let { startTime } = options;
   return tracks.map((track, index) => {
-    const durationMs = track.length ?? track.recording.length;
+    const { recording } = track;
+    const durationMs = track.length ?? recording.length;
     const listen: Listen = {
       listened_at: Math.round(startTime),
       track_metadata: {
-        track_name: track.title,
-        artist_name: joinArtistCredit(track["artist-credit"]),
+        track_name: recording.title,
+        artist_name: joinArtistCredit(recording["artist-credit"]),
         release_name: release.title,
         additional_info: {
-          recording_mbid: track.recording.id,
-          artist_mbids: track["artist-credit"].map((ac) => ac.artist.id),
+          tracknumber: track.position,
+          recording_mbid: recording.id,
+          artist_mbids: recording["artist-credit"].map((ac) => ac.artist.id),
           release_mbid: release.id,
         },
       },
