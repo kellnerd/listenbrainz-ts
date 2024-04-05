@@ -25,6 +25,7 @@ import {
   brightMagenta as cmd,
 } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/deps.ts";
 import { MusicBrainzClient } from "jsr:@kellnerd/musicbrainz@^0.1.2";
+import { parseTrackRange } from "jsr:@kellnerd/musicbrainz@^0.1.3/utils/track";
 
 /** MusicBrainz URLs which are accepted by the CLI. */
 const musicBrainzUrlPattern = new URLPattern({
@@ -164,7 +165,7 @@ export const cli = new Command()
     }
   })
   // Submit listen
-  .command("listen <metadata|url>")
+  .command("listen <metadata|url> [track-range]")
   .description(`
     Submit listen(s) for the given track metadata or URL.
       <metadata> = "<artist> - <title>"
@@ -178,7 +179,7 @@ export const cli = new Command()
   .option("--at <datetime>", "Date/Time when you started listening.")
   .option("--now", "Submit a playing now notification.", { conflicts: ["at"] })
   .option("-p, --preview", "Show listens instead of submitting them.")
-  .action(async function (options, input) {
+  .action(async function (options, input, trackRange) {
     const startTime = timestamp(options.at);
     if (isNaN(startTime)) {
       throw new ValidationError(`Invalid date "${options.at}"`);
@@ -203,7 +204,10 @@ export const cli = new Command()
         const release = await mb.lookup("release", mbid, {
           inc: ["recordings", "artist-credits"],
         });
-        const listens = parseMusicBrainzRelease(release, { startTime });
+        const listens = parseMusicBrainzRelease(release, {
+          startTime,
+          tracks: parseTrackRange(trackRange ?? ""),
+        });
         for (const listen of listens) {
           setSubmissionClient(listen.track_metadata, {
             name: "elbisaur (release submitter)",
