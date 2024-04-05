@@ -218,8 +218,18 @@ export const cli = new Command()
           }
         }
         if (!options.preview) {
-          await client.import(listens);
-          console.info(listens.length, "listens submitted");
+          if (options.now) {
+            if (listens.length === 1) {
+              await client.playingNow(listens[0].track_metadata);
+            } else {
+              throw new ValidationError(
+                "Playing now notification can only be submitted for one track.",
+              );
+            }
+          } else {
+            await client.import(listens);
+            console.info(listens.length, "listens submitted");
+          }
         }
       } else {
         throw new ValidationError(
