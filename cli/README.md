@@ -130,6 +130,18 @@ The app automatically calculates the listening timestamps for all tracks based o
 elbisaur listen https://musicbrainz.org/release/d6010be3-98f8-422c-a6c9-787e2e491e58 A --at 12:34:56
 ```
 
+Of course you can also specify the time when you finished listening (to the last track):
+
+```sh
+elbisaur listen https://musicbrainz.org/release/d6010be3-98f8-422c-a6c9-787e2e491e58 A --until 12:59:52
+```
+
+And if you finished listening to side B right now (this second), you can simply omit the time option:
+
+```sh
+elbisaur listen https://musicbrainz.org/release/d6010be3-98f8-422c-a6c9-787e2e491e58 B
+```
+
 Instead of specifying the track number prefix (here: the side number `A`), you could also explicitly type the track range `A1-A6`.
 For releases with multiple media, you can additionally specify the medium number (`2:1-5`), or even just a medium number (`2:`, since simply `2` would be interpreted as track number prefix).
 
