@@ -22,42 +22,47 @@ export function parseMusicBrainzRelease(
 ): Listen[] {
   const trackRange = options.tracks ?? {};
   const targetMedium = trackRange.medium;
-  const tracks = release.media.flatMap((medium) => {
+  const media = release.media.map((medium) => {
     if (!medium.tracks || (targetMedium && medium.position !== targetMedium)) {
-      return [];
+      return { ...medium, tracks: [] };
     }
-    return filterTrackRange(medium.tracks, trackRange);
+    return { ...medium, tracks: filterTrackRange(medium.tracks, trackRange) };
   });
-  const lastTrackIndex = tracks.length - 1;
 
   let { startTime } = options;
-  return tracks.map((track, index) => {
-    const { recording } = track;
-    const durationMs = track.length ?? recording.length;
-    const listen: Listen = {
-      listened_at: Math.round(startTime),
-      track_metadata: {
-        track_name: recording.title,
-        artist_name: joinArtistCredit(recording["artist-credit"]),
-        release_name: release.title,
-        additional_info: {
-          tracknumber: track.position,
-          recording_mbid: recording.id,
-          artist_mbids: recording["artist-credit"].map((ac) => ac.artist.id),
-          release_mbid: release.id,
-        },
-      },
-    };
-    if (durationMs) {
-      listen.track_metadata.additional_info!.duration_ms = durationMs;
-    }
-    if (index !== lastTrackIndex) {
+  let lastDurationMs: number | null = 0;
+  return media.flatMap((medium) =>
+    medium.tracks.map((track) => {
       assert(
-        durationMs !== null,
+        lastDurationMs !== null,
         "Unknown track length, can not calculate start time of the next listen",
       );
-      startTime += durationMs / 1000;
-    }
-    return listen;
-  });
+      startTime += lastDurationMs / 1000;
+
+      const { recording } = track;
+      const durationMs = track.length ?? recording.length;
+      const listen: Listen = {
+        listened_at: Math.round(startTime),
+        track_metadata: {
+          track_name: recording.title,
+          artist_name: joinArtistCredit(recording["artist-credit"]),
+          release_name: release.title,
+          additional_info: {
+            discnumber: medium.position,
+            tracknumber: track.position,
+            recording_mbid: recording.id,
+            artist_mbids: recording["artist-credit"].map((ac) => ac.artist.id),
+            release_mbid: release.id,
+          },
+        },
+      };
+
+      if (durationMs) {
+        listen.track_metadata.additional_info!.duration_ms = durationMs;
+      }
+      lastDurationMs = durationMs;
+
+      return listen;
+    })
+  );
 }
