@@ -36,7 +36,7 @@ const contactUrl = "https://github.com/kellnerd/listenbrainz-ts";
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.8.0-dev")
+  .version("0.8.0")
   .description("Manage your ListenBrainz listens and process listen dumps.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -165,11 +165,13 @@ export const cli = new Command()
     }
   })
   // Submit listen
-  .command("listen <metadata|url> [track-range]")
+  .command("listen <url|metadata> [track-range]")
   .description(`
-    Submit listen(s) for the given track metadata or URL.
-      <metadata> = "<artist> - <title>"
-      <url>      = "https://musicbrainz.org/release/<MBID>"
+    Submit listens for selected tracks from a release (given by its URL).
+      <url>         = "https://musicbrainz.org/release/<MBID>"
+      [track-range] = <first>-<last> | <prefix> | <medium>:<first>-<last>
+    Or submit a single listen using the given track metadata.
+      <metadata>    = "<artist> - <track-title>"
   `)
   .noGlobals() // except for `LB_TOKEN` which has to be redefined below
   .env("LB_TOKEN=<UUID>", "ListenBrainz user token.", {

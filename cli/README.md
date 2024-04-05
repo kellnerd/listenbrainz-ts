@@ -14,7 +14,7 @@ deno run https://deno.land/x/listenbrainz/cli/elbisaur.ts
 If you don’t want to have to remember the URL and grant permissions every time, you can [install] it with the permissions specified as arguments:
 
 ```sh
-deno install --allow-env=LB_USER,LB_TOKEN,ELBISAUR_LISTEN_TEMPLATE --allow-net=api.listenbrainz.org --allow-read --allow-write https://deno.land/x/listenbrainz/cli/elbisaur.ts
+deno install --allow-env=LB_USER,LB_TOKEN,ELBISAUR_LISTEN_TEMPLATE --allow-net=api.listenbrainz.org,musicbrainz.org --allow-read --allow-write https://deno.land/x/listenbrainz/cli/elbisaur.ts
 ```
 
 Now you can simply run the app by executing `elbisaur`, which should show you the help and complain about a missing required environment variable `LB_TOKEN`.
@@ -38,7 +38,7 @@ The following commands are available:
 | `history`    | Show the listening history of yourself or another user                 |
 | `delete`     | Delete listens in the given JSON file from your history                |
 | `import`     | Import listens from the given JSON file                                |
-| `listen`     | Submit listen for the given track metadata                             |
+| `listen`     | Submit listens for selected tracks from a release (given by its URL).  |
 | `parse`      | [Parse listens](#parsers) from a file and write them into a JSONL file |
 | `statistics` | Show statistics for the given JSON file                                |
 | `transform`  | Modify listens from a JSON input file and write them into a JSONL file |
@@ -105,6 +105,33 @@ Only if you are satisfied with what you see, you should proceed:
 ```sh
 elbisaur import listens.json
 ```
+
+### Manually Submitting Listens
+
+You can also use `elbisaur` to submit listens for selected tracks from a release manually.
+
+If you want to quickly submit a single listen with track title (Love Song) and artist (John Doe), you can use:
+
+```sh
+elbisaur listen "John Doe - Love Song" --at "2024-03-17 15:24:36"
+```
+
+Or quickly submit a playing now notification for that track:
+
+```sh
+elbisaur listen "John Doe - Love Song" --now
+```
+
+Alternatively you can also submit multiple listens using the MusicBrainz URL of a release.
+Say you started listening to side A of a vinyl record today at 12:34:56 and want to submit listens for these tracks.
+The app automatically calculates the listening timestamps for all tracks based on the track lengths.
+
+```sh
+elbisaur listen https://musicbrainz.org/release/d6010be3-98f8-422c-a6c9-787e2e491e58 A --at 12:34:56
+```
+
+Instead of specifying the track number prefix (here: the side number `A`), you could also explicitly type the track range `A1-A6`.
+For releases with multiple media, you can additionally specify the medium number (`2:1-5`), or even just a medium number (`2:`, since simply `2` would be interpreted as track number prefix).
 
 ### Deleting Listens
 
