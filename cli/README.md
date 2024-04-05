@@ -166,7 +166,7 @@ elbisaur delete bad-listens.jsonl
 
 Please note that this only marks listens for deletion currently and that it takes until the full hour before the deleted listens finally disappear from ListenBrainz.
 
-### Parsing .scobbbler.log Files
+### Parsing .scrobbler.log Files
 
 Parse a `.scrobbler.log` file (for example from a Rockbox player) and discard all scrobbles which are marked as skipped:
 

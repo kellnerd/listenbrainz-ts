@@ -1,5 +1,31 @@
 {
   "deno.enable": true,
   "deno.lint": true,
-  "deno.unstable": false
+  "deno.unstable": false,
+  "cSpell.words": [
+    "appload",
+    "AUDIOSCROBBLER",
+    "backbtn",
+    "brainzplayer",
+    "clickrow",
+    "discnumber",
+    "elbisaur",
+    "folksonomy",
+    "fwdbtn",
+    "isrc",
+    "listenbrainz",
+    "mbid",
+    "mbids",
+    "msid",
+    "playbtn",
+    "scrobble",
+    "scrobbler",
+    "scrobbles",
+    "Soundcloud",
+    "spotify",
+    "trackdone",
+    "trackerror",
+    "tracknumber",
+    "youtube"
+  ]
 }
