@@ -9,6 +9,7 @@ import {
 } from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
 import { JsonLogger, readListensFile } from "../utils.ts";
+import { parseMusicBrainzRelease } from "../parser/musicbrainz.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { parseSpotifyExtendedHistory } from "../parser/spotify.ts";
 import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
@@ -23,6 +24,14 @@ import {
   brightBlue as opt,
   brightMagenta as cmd,
 } from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/deps.ts";
+import { MusicBrainzClient } from "jsr:@kellnerd/musicbrainz@^0.1.2";
+
+/** MusicBrainz URLs which are accepted by the CLI. */
+const musicBrainzUrlPattern = new URLPattern({
+  pathname: "/release/:mbid([0-9a-f-]{36})",
+});
+
+const contactUrl = "https://github.com/kellnerd/listenbrainz-ts";
 
 export const cli = new Command()
   .name("elbisaur")
@@ -155,10 +164,11 @@ export const cli = new Command()
     }
   })
   // Submit listen
-  .command("listen <metadata>")
+  .command("listen <metadata|url>")
   .description(`
-    Submit listen for the given track metadata.
+    Submit listen(s) for the given track metadata or URL.
       <metadata> = "<artist> - <title>"
+      <url>      = "https://musicbrainz.org/release/<MBID>"
   `)
   .noGlobals() // except for `LB_TOKEN` which has to be redefined below
   .env("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
@@ -173,36 +183,76 @@ export const cli = new Command()
     if (isNaN(startTime)) {
       throw new ValidationError(`Invalid date "${options.at}"`);
     }
-    const trackMatch = input.match(/(?<artist>.+?) -+ (?<title>.+)/);
-    if (trackMatch?.groups) {
-      const track: Track = {
-        artist_name: trackMatch.groups.artist,
-        track_name: trackMatch.groups.title,
-      };
-      setSubmissionClient(track, {
-        name: "elbisaur (track submitter)",
-        version: this.getVersion()!,
-      });
-      if (options.preview) {
-        console.log(
-          formatListen({
-            listened_at: startTime,
-            track_metadata: track,
-          }),
-          options.listenTemplate,
-        );
-      } else {
-        const client = new ListenBrainzClient({ userToken: options.token });
-        if (options.now) {
-          await client.playingNow(track);
-          console.info("Playing now notification submitted");
-        } else {
-          await client.listen(track, startTime);
-          console.info("Listen submitted");
+    const client = new ListenBrainzClient({ userToken: options.token });
+    let url: URL | undefined;
+    try {
+      url = new URL(input);
+    } catch {
+      url = undefined;
+    }
+    if (url) {
+      const mbid = musicBrainzUrlPattern.exec(url)?.pathname.groups.mbid;
+      if (mbid) {
+        const mb = new MusicBrainzClient({
+          app: {
+            name: "elbisaur",
+            version: this.getVersion()!,
+            contact: contactUrl,
+          },
+        });
+        const release = await mb.lookup("release", mbid, {
+          inc: ["recordings", "artist-credits"],
+        });
+        const listens = parseMusicBrainzRelease(release, { startTime });
+        for (const listen of listens) {
+          setSubmissionClient(listen.track_metadata, {
+            name: "elbisaur (release submitter)",
+            version: this.getVersion()!,
+          });
+          if (options.preview) {
+            console.log(formatListen(listen, options.listenTemplate));
+          }
         }
+        if (!options.preview) {
+          await client.import(listens);
+          console.info(listens.length, "listens submitted");
+        }
+      } else {
+        throw new ValidationError(
+          "Unsupported URL, only MusicBrainz release URLs are allowed.",
+        );
       }
     } else {
-      throw new ValidationError(`Invalid metadata format "${input}"`);
+      const trackMatch = input.match(/(?<artist>.+?) -+ (?<title>.+)/);
+      if (trackMatch?.groups) {
+        const track: Track = {
+          artist_name: trackMatch.groups.artist,
+          track_name: trackMatch.groups.title,
+        };
+        setSubmissionClient(track, {
+          name: "elbisaur (track submitter)",
+          version: this.getVersion()!,
+        });
+        if (options.preview) {
+          console.log(
+            formatListen({
+              listened_at: startTime,
+              track_metadata: track,
+            }),
+            options.listenTemplate,
+          );
+        } else {
+          if (options.now) {
+            await client.playingNow(track);
+            console.info("Playing now notification submitted");
+          } else {
+            await client.listen(track, startTime);
+            console.info("Listen submitted");
+          }
+        }
+      } else {
+        throw new ValidationError(`Invalid metadata format "${input}"`);
+      }
     }
   })
   // File parser
