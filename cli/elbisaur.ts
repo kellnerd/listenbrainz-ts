@@ -183,6 +183,7 @@ export const cli = new Command()
   .option("--until <datetime>", "Date/Time when you stopped listening.", {
     conflicts: ["at", "now"],
   })
+  .option("-e, --edit <expression>", "Edit track metadata.", { collect: true })
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, input, trackRange) {
     // Use the current time as end time by default, unless a start time is specified.
@@ -198,6 +199,7 @@ export const cli = new Command()
       }
       endTime = undefined;
     }
+    const editListen = getListenModifier(options.edit);
     const client = new ListenBrainzClient({ userToken: options.token });
     let url: URL | undefined;
     try {
@@ -224,6 +226,7 @@ export const cli = new Command()
           tracks: parseTrackRange(trackRange ?? ""),
         });
         for (const listen of listens) {
+          editListen(listen);
           setSubmissionClient(listen.track_metadata, {
             name: "elbisaur (release submitter)",
             version: this.getVersion()!,
@@ -261,18 +264,17 @@ export const cli = new Command()
           artist_name: trackMatch.groups.artist,
           track_name: trackMatch.groups.title,
         };
+        const listen: Listen = {
+          listened_at: startTime,
+          track_metadata: track,
+        };
+        editListen(listen);
         setSubmissionClient(track, {
           name: "elbisaur (track submitter)",
           version: this.getVersion()!,
         });
         if (options.preview) {
-          console.log(
-            formatListen({
-              listened_at: startTime,
-              track_metadata: track,
-            }),
-            options.listenTemplate,
-          );
+          console.log(formatListen(listen), options.listenTemplate);
         } else {
           if (options.now) {
             await client.playingNow(track);
