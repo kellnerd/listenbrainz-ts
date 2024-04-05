@@ -173,11 +173,16 @@ export const cli = new Command()
     Or submit a single listen using the given track metadata.
       <metadata>    = "<artist> - <track-title>"
   `)
-  .noGlobals() // except for `LB_TOKEN` which has to be redefined below
+  .noGlobals() // except for the two env variables which are redefined below
   .env("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
     required: true,
   })
+  .env(
+    "ELBISAUR_LISTEN_TEMPLATE=<template>",
+    "Template string to format a logged listen.",
+    { prefix: "ELBISAUR_" },
+  )
   .option("--at <datetime>", "Date/Time when you started listening.")
   .option("--now", "Submit a playing now notification.", { conflicts: ["at"] })
   .option("--until <datetime>", "Date/Time when you stopped listening.", {
