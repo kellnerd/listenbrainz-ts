@@ -180,11 +180,23 @@ export const cli = new Command()
   })
   .option("--at <datetime>", "Date/Time when you started listening.")
   .option("--now", "Submit a playing now notification.", { conflicts: ["at"] })
+  .option("--until <datetime>", "Date/Time when you stopped listening.", {
+    conflicts: ["at", "now"],
+  })
   .option("-p, --preview", "Show listens instead of submitting them.")
   .action(async function (options, input, trackRange) {
-    const startTime = timestamp(options.at);
-    if (isNaN(startTime)) {
-      throw new ValidationError(`Invalid date "${options.at}"`);
+    // Use the current time as end time by default, unless a start time is specified.
+    let endTime: number | undefined = timestamp(options.until);
+    if (isNaN(endTime)) {
+      throw new ValidationError(`Invalid date "${options.until}"`);
+    }
+    let startTime: number | undefined;
+    if (options.at) {
+      startTime = timestamp(options.at);
+      if (isNaN(startTime)) {
+        throw new ValidationError(`Invalid date "${options.at}"`);
+      }
+      endTime = undefined;
     }
     const client = new ListenBrainzClient({ userToken: options.token });
     let url: URL | undefined;
@@ -208,6 +220,7 @@ export const cli = new Command()
         });
         const listens = parseMusicBrainzRelease(release, {
           startTime,
+          endTime,
           tracks: parseTrackRange(trackRange ?? ""),
         });
         for (const listen of listens) {
@@ -239,6 +252,9 @@ export const cli = new Command()
         );
       }
     } else {
+      if (!startTime) {
+        throw new ValidationError('Missing value for option "--at".');
+      }
       const trackMatch = input.match(/(?<artist>.+?) -+ (?<title>.+)/);
       if (trackMatch?.groups) {
         const track: Track = {
