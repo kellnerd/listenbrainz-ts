@@ -24,7 +24,7 @@ Running `elbisaur` automatically tries to load environment variables from a `.en
 ```conf
 # example token below, insert your own
 LB_TOKEN = "3b851ecc-474d-44eb-a4d0-db3bbb5ef8b8"
-# user name is optional, but it sometimes safes an API request if it is specified
+# user name is optional, but it sometimes saves an API request if it is specified
 LB_USER = "Your LB user name here"
 ```
 
@@ -38,7 +38,7 @@ The following commands are available:
 | `history`    | Show the listening history of yourself or another user                 |
 | `delete`     | Delete listens in the given JSON file from your history                |
 | `import`     | Import listens from the given JSON file                                |
-| `listen`     | Submit listens for selected tracks from a release (given by its URL).  |
+| `listen`     | Submit listens for selected tracks from a release (given by its URL)   |
 | `parse`      | [Parse listens](#parsers) from a file and write them into a JSONL file |
 | `statistics` | Show statistics for the given JSON file                                |
 | `transform`  | Modify listens from a JSON input file and write them into a JSONL file |
@@ -59,7 +59,7 @@ The following formats can be parsed by elbisaur (in addition to native JSON and 
 See the [parser documentation](../README.md#parsers) for implementation details.
 
 > [!NOTE]
-> The parsers performs no filtering of listens, so you have to detect potential duplicates and skipped listens yourself.
+> The parsers perform no filtering of listens, so you have to detect potential duplicates and skipped listens yourself.
 
 ## Examples
 
