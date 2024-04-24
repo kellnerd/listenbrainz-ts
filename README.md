@@ -66,6 +66,6 @@ The following parsers are available in the `listenbrainz/parser/*.ts` submodules
 [ListenBrainz]: https://listenbrainz.org/
 [ListenBrainz API]: https://listenbrainz.readthedocs.io/en/latest/users/api/index.html
 [ListenBrainz settings]: https://listenbrainz.org/settings/
-[LB listening history export]: https://listenbrainz.org/profile/export/
+[LB listening history export]: https://listenbrainz.org/settings/export/
 [playing now]: https://listenbrainz.org/listening-now/
 [Rockbox]: https://www.rockbox.org/wiki/LastFMLog

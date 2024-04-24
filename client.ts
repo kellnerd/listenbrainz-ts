@@ -27,9 +27,9 @@ export interface ClientOptions {
 /**
  * ListenBrainz API client to submit listens and request data.
  *
- * You have to specify a user token which you can obtain from your [profile].
+ * You have to specify a user token which you can obtain from your [settings].
  *
- * [profile]: https://listenbrainz.org/profile/
+ * [settings]: https://listenbrainz.org/settings/
  *
  * @example
  * ```ts
