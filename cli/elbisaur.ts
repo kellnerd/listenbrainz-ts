@@ -36,7 +36,7 @@ const contactUrl = "https://github.com/kellnerd/listenbrainz-ts";
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.8.0")
+  .version("0.8.1")
   .description("Manage your ListenBrainz listens and process listen dumps.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -422,6 +422,7 @@ export const cli = new Command()
     "transform <input:file> <output:file>",
     "Modify listens from a JSON input file and write them into a JSONL file.",
   )
+  .option("-p, --preview", "Show listens instead of writing them.")
   .option("-e, --edit <expression>", "Edit track metadata.", { collect: true })
   .option(
     "-t, --time-offset <seconds:integer>",
@@ -433,7 +434,9 @@ export const cli = new Command()
     const editListen = getListenModifier(options.edit);
     const listenSource = readListensFile(inputPath);
     const output = new JsonLogger();
-    await output.open(outputPath);
+    if (!options.preview) {
+      await output.open(outputPath);
+    }
     for await (const listen of listenSource) {
       if (listenFilter(listen)) {
         editListen(listen);
@@ -443,7 +446,11 @@ export const cli = new Command()
           version: this.getVersion()!,
           overwrite: true,
         });
-        await output.log(listen);
+        if (options.preview) {
+          console.log(formatListen(listen, options.listenTemplate));
+        } else {
+          await output.log(listen);
+        }
       }
     }
     await output.close();
