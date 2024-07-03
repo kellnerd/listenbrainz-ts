@@ -1,5 +1,5 @@
 import { type InsertedListen, isListen, type Listen } from "../listen.ts";
-import { TextLineStream } from "@std/streams/text_line_stream";
+import { TextLineStream } from "@std/streams/text-line-stream";
 
 /**
  * Parses a readable text stream from a JSONL file into listens.

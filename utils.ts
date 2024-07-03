@@ -1,4 +1,4 @@
-import { type InsertedListen, type Listen } from "./listen.ts";
+import type { InsertedListen, Listen } from "./listen.ts";
 import { parseJson, parseJsonLines } from "./parser/json.ts";
 import { assert } from "@std/assert/assert";
 import { extname } from "@std/path/extname";

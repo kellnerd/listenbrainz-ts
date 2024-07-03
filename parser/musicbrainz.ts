@@ -3,7 +3,7 @@ import type { Release } from "jsr:@kellnerd/musicbrainz@^0.1.2";
 import { joinArtistCredit } from "jsr:@kellnerd/musicbrainz@^0.1.3/utils/artist";
 import {
   filterTrackRange,
-  TrackRange,
+  type TrackRange,
 } from "jsr:@kellnerd/musicbrainz@^0.1.3/utils/track";
 import type { Listen } from "../listen.ts";
 

@@ -13,17 +13,9 @@ import { parseMusicBrainzRelease } from "../parser/musicbrainz.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { parseSpotifyExtendedHistory } from "../parser/spotify.ts";
 import { extname } from "@std/path/extname";
-import { parse as parseYaml } from "@std/yaml";
-import {
-  Command,
-  ValidationError,
-} from "@cliffy/ansi/command/mod";
-// Use internal colors of cliffy, although this import may break in the future.
-// If this ever happens, we would want to update our highlighting colors anyway.
-import {
-  brightBlue as opt,
-  brightMagenta as cmd,
-} from "@cliffy/ansi/command/deps";
+import { parse as parseYaml } from "jsr:@std/yaml@^1.0.0-rc.1";
+import { Command, ValidationError } from "jsr:@cliffy/command@1.0.0-rc.5";
+import { brightBlue as opt, brightMagenta as cmd } from "@std/fmt/colors";
 import { MusicBrainzClient } from "jsr:@kellnerd/musicbrainz@^0.1.2";
 import { parseTrackRange } from "jsr:@kellnerd/musicbrainz@^0.1.3/utils/track";
 
@@ -36,7 +28,7 @@ const contactUrl = "https://github.com/kellnerd/listenbrainz-ts";
 
 export const cli = new Command()
   .name("elbisaur")
-  .version("0.8.1")
+  .version("0.8.2")
   .description("Manage your ListenBrainz listens and process listen dumps.")
   .globalEnv("LB_TOKEN=<UUID>", "ListenBrainz user token.", {
     prefix: "LB_",
@@ -496,7 +488,7 @@ async function getListenFilter(filterSpecification?: string, options: {
 
   async function loadConditionsFromYaml(path: string, operator: "==" | "!=") {
     const content = await Deno.readTextFile(path);
-    const excludeMap = parseYaml(content, { filename: path }) as any;
+    const excludeMap = parseYaml(content) as Record<string, unknown>;
     for (const [key, values] of Object.entries(excludeMap)) {
       if (Array.isArray(values)) {
         conditions.push({ key, operator, value: values });
@@ -610,7 +602,7 @@ function compare(actualValue: unknown, value: string): number {
 
 if (import.meta.main) {
   // Automatically load environment variables from `.env` file.
-  await import("https://deno.land/std@0.210.0/dotenv/load.ts");
+  await import("jsr:@std/dotenv@^0.224.2/load");
 
   await cli.parse();
 }

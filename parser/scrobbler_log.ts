@@ -1,9 +1,9 @@
 import type { Listen, Track } from "../listen.ts";
 import { localTimestampToUtc } from "../timestamp.ts";
 import { assert } from "@std/assert/assert";
-import { CsvParseStream } from "@std/csv/csv_parse_stream";
-import { LimitedTransformStream } from "@std/streams/limited_transform_stream";
-import { TextLineStream } from "@std/streams/text_line_stream";
+import { CsvParseStream } from "@std/csv/parse-stream";
+import { LimitedTransformStream } from "@std/streams/limited-transform-stream";
+import { TextLineStream } from "@std/streams/text-line-stream";
 
 /**
  * Parses a readable text stream from a `.scrobbler.log` file into listens.
