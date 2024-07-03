@@ -67,7 +67,7 @@ export function parseMusicBrainzRelease(
           release_name: release.title,
           additional_info: {
             discnumber: medium.position,
-            tracknumber: track.position,
+            tracknumber: track.number,
             recording_mbid: recording.id,
             artist_mbids: recording["artist-credit"].map((ac) => ac.artist.id),
             release_mbid: release.id,

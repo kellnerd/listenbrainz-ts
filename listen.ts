@@ -39,7 +39,7 @@ export interface AdditionalTrackInfo {
   /** List of MusicBrainz Work IDs that may be associated with this recording. */
   work_mbids: string[];
   /** The tracknumber of the recording (first recording on a release is #1). */
-  tracknumber: number;
+  tracknumber: number | string;
   /** The ISRC code associated with the recording. */
   isrc: string;
   /**

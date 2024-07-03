@@ -69,7 +69,7 @@ export async function* parseScrobblerLog(
     if (scrobble.release_name) track.release_name = scrobble.release_name;
     if (scrobble.recording_mbid) info.recording_mbid = scrobble.recording_mbid;
     if (scrobble.duration) info.duration = parseInt(scrobble.duration);
-    if (scrobble.tracknumber) info.tracknumber = parseInt(scrobble.tracknumber);
+    if (scrobble.tracknumber) info.tracknumber = scrobble.tracknumber;
     if (player) info.media_player = player;
     if (scrobble.rating === "S") info.skipped = true;
 
