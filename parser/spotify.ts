@@ -181,7 +181,7 @@ export function isSpotifyStream(json: any): json is SpotifyStream {
 }
 
 /** URL pattern of a Spotify URI, in the form of `spotify:<type>:<base-62-id>`. */
-export const spotifyUriPattern = new URLPattern(
+export const spotifyUriPattern: URLPattern = new URLPattern(
   String.raw`spotify::type([a-z]+)\::id([A-Za-z0-9]+)`,
 );
 

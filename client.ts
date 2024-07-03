@@ -50,7 +50,7 @@ export class ListenBrainzClient {
   }
 
   /** Imports the given listens. */
-  import(listens: Listen[]) {
+  import(listens: Listen[]): Promise<void> {
     return this.#submitListens({ listen_type: "import", payload: listens });
   }
 
@@ -60,7 +60,7 @@ export class ListenBrainzClient {
    * @param track Metadata of the track.
    * @param listenedAt Playback start time of the track (Unix time in seconds).
    */
-  listen(track: Track, listenedAt: number) {
+  listen(track: Track, listenedAt: number): Promise<void> {
     return this.#submitListens({
       listen_type: "single",
       payload: [{
@@ -71,14 +71,14 @@ export class ListenBrainzClient {
   }
 
   /** Submits a playing now notification for the given track. */
-  playingNow(track: Track) {
+  playingNow(track: Track): Promise<void> {
     return this.#submitListens({
       listen_type: "playing_now",
       payload: [{ track_metadata: track }],
     });
   }
 
-  async #submitListens(data: ListenSubmission) {
+  async #submitListens(data: ListenSubmission): Promise<void> {
     await this.post("1/submit-listens", data);
   }
 
@@ -88,7 +88,7 @@ export class ListenBrainzClient {
    * The listen is not deleted immediately, but is scheduled for deletion,
    * which usually happens shortly after the hour.
    */
-  async deleteListen(listen: UniqueListen) {
+  async deleteListen(listen: UniqueListen): Promise<void> {
     await this.post("1/delete-listen", {
       listened_at: listen.listened_at,
       recording_msid: listen.recording_msid,
