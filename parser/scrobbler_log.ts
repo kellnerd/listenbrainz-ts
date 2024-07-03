@@ -1,9 +1,9 @@
 import type { Listen, Track } from "../listen.ts";
 import { localTimestampToUtc } from "../timestamp.ts";
-import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
-import { CsvParseStream } from "https://deno.land/std@0.210.0/csv/csv_parse_stream.ts";
-import { LimitedTransformStream } from "https://deno.land/std@0.210.0/streams/limited_transform_stream.ts";
-import { TextLineStream } from "https://deno.land/std@0.210.0/streams/text_line_stream.ts";
+import { assert } from "@std/assert/assert";
+import { CsvParseStream } from "@std/csv/csv_parse_stream";
+import { LimitedTransformStream } from "@std/streams/limited_transform_stream";
+import { TextLineStream } from "@std/streams/text_line_stream";
 
 /**
  * Parses a readable text stream from a `.scrobbler.log` file into listens.

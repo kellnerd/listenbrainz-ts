@@ -10,9 +10,9 @@ import type {
   Track,
   UniqueListen,
 } from "./listen.ts";
-import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
-import { delay } from "https://deno.land/std@0.210.0/async/delay.ts";
-import { validate } from "https://deno.land/std@0.210.0/uuid/v4.ts";
+import { assert } from "@std/assert/assert";
+import { delay } from "@std/async/delay";
+import { validate } from "@std/uuid/v4";
 
 /** ListenBrainz API client configuration options. */
 export interface ClientOptions {

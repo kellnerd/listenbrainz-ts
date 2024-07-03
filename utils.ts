@@ -1,7 +1,7 @@
 import { type InsertedListen, type Listen } from "./listen.ts";
 import { parseJson, parseJsonLines } from "./parser/json.ts";
-import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
-import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
+import { assert } from "@std/assert/assert";
+import { extname } from "@std/path/extname";
 
 /** Splits the given asynchronous iterable into chunks of the given size. */
 export async function* chunk<T>(

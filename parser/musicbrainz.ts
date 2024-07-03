@@ -1,4 +1,4 @@
-import { assert } from "https://deno.land/std@0.210.0/assert/assert.ts";
+import { assert } from "@std/assert/assert";
 import type { Release } from "jsr:@kellnerd/musicbrainz@^0.1.2";
 import { joinArtistCredit } from "jsr:@kellnerd/musicbrainz@^0.1.3/utils/artist";
 import {

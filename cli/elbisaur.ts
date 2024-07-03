@@ -12,18 +12,18 @@ import { JsonLogger, readListensFile } from "../utils.ts";
 import { parseMusicBrainzRelease } from "../parser/musicbrainz.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { parseSpotifyExtendedHistory } from "../parser/spotify.ts";
-import { extname } from "https://deno.land/std@0.210.0/path/extname.ts";
-import { parse as parseYaml } from "https://deno.land/std@0.210.0/yaml/mod.ts";
+import { extname } from "@std/path/extname";
+import { parse as parseYaml } from "@std/yaml";
 import {
   Command,
   ValidationError,
-} from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/mod.ts";
+} from "@cliffy/ansi/command/mod";
 // Use internal colors of cliffy, although this import may break in the future.
 // If this ever happens, we would want to update our highlighting colors anyway.
 import {
   brightBlue as opt,
   brightMagenta as cmd,
-} from "https://deno.land/x/cliffy@v1.0.0-rc.3/command/deps.ts";
+} from "@cliffy/ansi/command/deps";
 import { MusicBrainzClient } from "jsr:@kellnerd/musicbrainz@^0.1.2";
 import { parseTrackRange } from "jsr:@kellnerd/musicbrainz@^0.1.3/utils/track";
 
