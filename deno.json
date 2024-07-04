@@ -1,9 +1,10 @@
 {
   "name": "@kellnerd/listenbrainz",
-  "version": "0.8.2",
+  "version": "0.8.3",
   "exports": {
     ".": "./mod.ts",
     "./listen": "./listen.ts",
+    "./timestamp": "./timestamp.ts",
     "./parser/json": "./parser/json.ts",
     "./parser/musicbrainz": "./parser/musicbrainz.ts",
     "./parser/scrobbler-log": "./parser/scrobbler_log.ts",
