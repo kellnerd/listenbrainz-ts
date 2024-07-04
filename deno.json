@@ -18,11 +18,19 @@
     "@std/streams": "jsr:@std/streams@^1.0.0-rc.2",
     "@std/uuid": "jsr:@std/uuid@^1.0.0"
   },
+  "fmt": {
+    "exclude": [
+      "**/*.md"
+    ]
+  },
   "publish": {
     "exclude": [
       ".vscode/",
       "cli/",
       "utils.ts"
     ]
+  },
+  "tasks": {
+    "ok": "deno fmt --check && deno lint"
   }
 }

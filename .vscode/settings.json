@@ -2,6 +2,10 @@
   "deno.enable": true,
   "deno.lint": true,
   "deno.unstable": false,
+  "editor.defaultFormatter": "denoland.vscode-deno",
+  "[typescript]": {
+    "editor.defaultFormatter": "denoland.vscode-deno"
+  },
   "cSpell.words": [
     "appload",
     "AUDIOSCROBBLER",
@@ -17,6 +21,7 @@
     "mbid",
     "mbids",
     "msid",
+    "musicbrainz",
     "playbtn",
     "scrobble",
     "scrobbler",
