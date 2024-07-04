@@ -60,7 +60,7 @@ The following parsers are available in the `listenbrainz/parser/*` submodules:
 `elbisaur` is a CLI which can be used to submit and manage listens. [Learn more][elbisaur].
 
 [documentation]: https://jsr.io/@kellnerd/listenbrainz/doc
-[elbisaur]: https://github.com/kellnerd/listenbrainz-ts/blob/main/cli/README.md
+[elbisaur]: https://github.com/kellnerd/elbisaur
 [MusicBrainz]: https://musicbrainz.org/
 [ListenBrainz]: https://listenbrainz.org/
 [ListenBrainz API]: https://listenbrainz.readthedocs.io/en/latest/users/api/index.html
