@@ -12,12 +12,12 @@ import { JsonLogger, readListensFile } from "../utils.ts";
 import { parseMusicBrainzRelease } from "../parser/musicbrainz.ts";
 import { parseScrobblerLog } from "../parser/scrobbler_log.ts";
 import { parseSpotifyExtendedHistory } from "../parser/spotify.ts";
+import { MusicBrainzClient } from "@kellnerd/musicbrainz";
+import { parseTrackRange } from "@kellnerd/musicbrainz/utils/track";
 import { extname } from "@std/path/extname";
 import { parse as parseYaml } from "jsr:@std/yaml@^1.0.0-rc.1";
 import { Command, ValidationError } from "jsr:@cliffy/command@1.0.0-rc.5";
 import { brightBlue as opt, brightMagenta as cmd } from "@std/fmt/colors";
-import { MusicBrainzClient } from "jsr:@kellnerd/musicbrainz@^0.1.2";
-import { parseTrackRange } from "jsr:@kellnerd/musicbrainz@^0.1.3/utils/track";
 
 /** MusicBrainz URLs which are accepted by the CLI. */
 const musicBrainzUrlPattern = new URLPattern({

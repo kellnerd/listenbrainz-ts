@@ -10,6 +10,7 @@
     "./parser/spotify": "./parser/spotify.ts"
   },
   "imports": {
+    "@kellnerd/musicbrainz": "jsr:@kellnerd/musicbrainz@^0.3.0",
     "@std/assert": "jsr:@std/assert@^1.0.0-rc.3",
     "@std/async": "jsr:@std/async@^1.0.0-rc.3",
     "@std/csv": "jsr:@std/csv@^1.0.0-rc.1",
