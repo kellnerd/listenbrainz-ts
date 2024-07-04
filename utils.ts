@@ -47,8 +47,7 @@ export class JsonLogger {
   }
 
   /** Writes a line of stringified JSON into the output file. */
-  // deno-lint-ignore no-explicit-any
-  async log(json: any) {
+  async log(json: unknown) {
     if (!this.#output) return;
     const line = JSON.stringify(json) + "\n";
     await this.#output.write(this.#encoder.encode(line));

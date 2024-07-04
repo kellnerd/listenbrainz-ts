@@ -152,11 +152,10 @@ export class ListenBrainzClient {
    *
    * This method should only be directly called for unsupported endpoints.
    */
-  // deno-lint-ignore no-explicit-any
   async get(
     endpoint: string,
     query?: Record<string, string | number>,
-  ): Promise<any> {
+  ): Promise<unknown> {
     const endpointUrl = new URL(endpoint, this.apiBaseUrl);
     if (query) {
       const definedParams = Object.entries(query).filter(
@@ -185,8 +184,7 @@ export class ListenBrainzClient {
    *
    * This method should only be directly called for unsupported endpoints.
    */
-  // deno-lint-ignore no-explicit-any
-  async post(endpoint: string, json: any): Promise<any> {
+  async post(endpoint: string, json: unknown): Promise<unknown> {
     const endpointUrl = new URL(endpoint, this.apiBaseUrl);
     const response = await this.#request(endpointUrl, {
       method: "POST",
