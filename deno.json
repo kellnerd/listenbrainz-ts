@@ -25,6 +25,7 @@
   },
   "publish": {
     "exclude": [
+      ".github/",
       ".vscode/",
       "cli/",
       "utils.ts"
