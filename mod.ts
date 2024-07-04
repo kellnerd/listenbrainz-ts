@@ -1,8 +1,4 @@
-export {
-  type ClientOptions,
-  ListenBrainzClient,
-  type Query,
-} from "./client.ts";
+export { type ClientOptions, ListenBrainzClient } from "./client.ts";
 
 export { ApiError } from "./error.ts";
 

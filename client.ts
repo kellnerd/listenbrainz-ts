@@ -1,8 +1,4 @@
-import type {
-  LimitOptions,
-  UserListens,
-  UserPlayingNow,
-} from "./api_types.ts";
+import type { LimitOptions, UserListens, UserPlayingNow } from "./api_types.ts";
 import { ApiError, isError } from "./error.ts";
 import type {
   Listen,
@@ -157,7 +153,10 @@ export class ListenBrainzClient {
    * This method should only be directly called for unsupported endpoints.
    */
   // deno-lint-ignore no-explicit-any
-  async get(endpoint: string, query?: Query<string | number>): Promise<any> {
+  async get(
+    endpoint: string,
+    query?: Record<string, string | number>,
+  ): Promise<any> {
     const endpointUrl = new URL(endpoint, this.apiBaseUrl);
     if (query) {
       const definedParams = Object.entries(query).filter(
@@ -233,9 +232,6 @@ export class ListenBrainzClient {
   #headers: HeadersInit;
   #rateLimitDelay = Promise.resolve();
 }
-
-/** URL query parameters. */
-export type Query<T extends string | number = string> = Record<string, T>;
 
 /** JSON document which is returned by many endpoints. */
 type Payload<T> = {
