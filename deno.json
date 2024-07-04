@@ -1,7 +1,14 @@
 {
   "name": "@kellnerd/listenbrainz",
   "version": "0.8.2",
-  "exports": "./mod.ts",
+  "exports": {
+    ".": "./mod.ts",
+    "./listen": "./listen.ts",
+    "./parser/json": "./parser/json.ts",
+    "./parser/musicbrainz": "./parser/musicbrainz.ts",
+    "./parser/scrobbler-log": "./parser/scrobbler_log.ts",
+    "./parser/spotify": "./parser/spotify.ts"
+  },
   "imports": {
     "@std/assert": "jsr:@std/assert@^1.0.0-rc.3",
     "@std/async": "jsr:@std/async@^1.0.0-rc.3",
@@ -10,5 +17,12 @@
     "@std/path": "jsr:@std/path@^1.0.0-rc.3",
     "@std/streams": "jsr:@std/streams@^1.0.0-rc.2",
     "@std/uuid": "jsr:@std/uuid@^1.0.0"
+  },
+  "publish": {
+    "exclude": [
+      ".vscode/",
+      "cli/",
+      "utils.ts"
+    ]
   }
 }
