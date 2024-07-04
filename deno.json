@@ -32,6 +32,7 @@
     ]
   },
   "tasks": {
+    "build-docs": "deno doc --html --name=listenbrainz mod.ts listen.ts timestamp.ts parser/*.ts",
     "ok": "deno fmt --check && deno lint"
   }
 }

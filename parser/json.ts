@@ -1,3 +1,9 @@
+/**
+ * Listen parsers for ListenBrainz JSON and JSONL formats.
+ *
+ * @module
+ */
+
 import { type InsertedListen, isListen, type Listen } from "../listen.ts";
 import { TextLineStream } from "@std/streams/text-line-stream";
 

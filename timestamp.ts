@@ -1,4 +1,10 @@
 /**
+ * Timestamp conversion utilities.
+ *
+ * @module
+ */
+
+/**
  * Converts the given date time string into a Unix timestamp.
  * If no value is passed, it returns the current timestamp.
  *

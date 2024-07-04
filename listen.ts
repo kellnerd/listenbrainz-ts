@@ -1,3 +1,9 @@
+/**
+ * Type definitions and utilities for ListenBrainz listens.
+ *
+ * @module
+ */
+
 /** Metadata of an audio track that was played. */
 export interface Track {
   /** Name of the recording artist. */
@@ -298,6 +304,7 @@ export function formatListen(
   );
 }
 
+/** Default template which is used by {@linkcode formatListen}. */
 export const defaultListenTemplate =
   "%date% | %duration% | %artist_name% | %track_name% | %release_name% | #%tracknumber%";
 

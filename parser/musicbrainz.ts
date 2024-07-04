@@ -1,3 +1,9 @@
+/**
+ * Listen parser for MusicBrainz API releases.
+ *
+ * @module
+ */
+
 import { assert } from "@std/assert/assert";
 import type { Release } from "jsr:@kellnerd/musicbrainz@^0.1.2";
 import { joinArtistCredit } from "jsr:@kellnerd/musicbrainz@^0.1.3/utils/artist";
@@ -84,3 +90,5 @@ export function parseMusicBrainzRelease(
     })
   );
 }
+
+export type { Release, TrackRange };

@@ -1,3 +1,12 @@
+/**
+ * [ListenBrainz] [API] client.
+ *
+ * [ListenBrainz]: https://listenbrainz.org/
+ * [API]: https://listenbrainz.readthedocs.io/en/latest/users/api/index.html
+ *
+ * @module
+ */
+
 import type { LimitOptions, UserListens, UserPlayingNow } from "./api_types.ts";
 import { ApiError, isError } from "./error.ts";
 import type {
@@ -34,6 +43,7 @@ export interface ClientOptions {
  * ```
  */
 export class ListenBrainzClient {
+  /** Creates a new ListenBrainz API client using the given options. */
   constructor(options: ClientOptions) {
     this.apiBaseUrl = options.apiUrl ?? "https://api.listenbrainz.org/";
     this.maxRetries = options.maxRetries ?? 1;

@@ -1,6 +1,6 @@
 # listenbrainz
 
-[Deno] library to access the [ListenBrainz API], written in TypeScript.
+TypeScript library to access the [ListenBrainz API].
 
 You can use it to submit your listening history to your [ListenBrainz] account with your own apps.
 
@@ -26,7 +26,7 @@ In order to submit listens, you have to specify a user token which you can obtai
 The following example instantiates a ListenBrainz client with a token from an environment variable and submits a [playing now] notification for a track:
 
 ```ts
-import { ListenBrainzClient } from "https://deno.land/x/listenbrainz@v0.7.0/client.ts";
+import { ListenBrainzClient } from "@kellnerd/listenbrainz";
 
 const client = new ListenBrainzClient({ userToken: Deno.env.get("LB_TOKEN") });
 await client.playingNow({ artist_name: "John Doe", track_name: "Love Song" });
@@ -39,9 +39,9 @@ These objects can then be used together with the ListenBrainz API and the LB cli
 None of the parsers performs any filtering of listens, so you have to detect potential duplicates and skipped listens yourself.
 
 The parsers do not include any logic to access files to make them platform independent.
-You can pass them the content from a HTTP response body or from a Deno file, for example.
+You can pass them the content from a HTTP response body or from a file, for example.
 
-The following parsers are available in the `listenbrainz/parser/*.ts` submodules:
+The following parsers are available in the `listenbrainz/parser/*` submodules:
 
 - **JSON**: Accepts a JSON-serialized `Listen` object (as shown by the LB “Inspect listen” dialog) or an array of `Listen` objects (format of a [LB listening history export]) as input.
 - **JSONL**: Multiple JSON-serialized `Listen` objects, separated by line breaks.
@@ -59,9 +59,8 @@ The following parsers are available in the `listenbrainz/parser/*.ts` submodules
 
 `elbisaur` is a CLI which can be used to submit and manage listens. [Learn more][elbisaur].
 
-[Deno]: https://deno.com/
-[documentation]: https://deno.land/x/listenbrainz?doc
-[elbisaur]: ./cli/README.md
+[documentation]: https://jsr.io/@kellnerd/listenbrainz/doc
+[elbisaur]: https://github.com/kellnerd/listenbrainz-ts/blob/main/cli/README.md
 [MusicBrainz]: https://musicbrainz.org/
 [ListenBrainz]: https://listenbrainz.org/
 [ListenBrainz API]: https://listenbrainz.readthedocs.io/en/latest/users/api/index.html

@@ -1,3 +1,9 @@
+/**
+ * Type definitions for ListenBrainz API results.
+ *
+ * @module
+ */
+
 import type { InsertedListen, Track } from "./listen.ts";
 
 /** Options to limit the returned listens or feed events. */
@@ -22,6 +28,7 @@ export interface UserListens {
   count: number;
   /** MusicBrainz name of the user whose listens are being returned. */
   user_id: string;
+  /** Listens from the database. */
   listens: InsertedListen[];
   /** Timestamp of the latest listen by the user. */
   latest_listen_ts: number;
@@ -35,9 +42,11 @@ export interface UserPlayingNow {
   count: 0 | 1;
   /** MusicBrainz name of the user whose listens are being returned. */
   user_id: string;
+  /** Listen which is playing now. */
   listens: [] | [{
     playing_now: true;
     track_metadata: Track;
   }];
+  /** Indicates that the payload is a playing now listen. */
   playing_now: true;
 }

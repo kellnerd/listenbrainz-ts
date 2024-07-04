@@ -1,3 +1,9 @@
+/**
+ * Listen parser and types for Spotify Extended Streaming History JSON files.
+ *
+ * @module
+ */
+
 import type { Listen } from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
 

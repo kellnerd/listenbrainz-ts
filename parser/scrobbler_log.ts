@@ -1,3 +1,9 @@
+/**
+ * Listen parser for `.scrobbler.log` files.
+ *
+ * @module
+ */
+
 import type { Listen, Track } from "../listen.ts";
 import { localTimestampToUtc } from "../timestamp.ts";
 import { assert } from "@std/assert/assert";
