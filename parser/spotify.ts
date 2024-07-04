@@ -1,4 +1,4 @@
-import { type Listen } from "../listen.ts";
+import type { Listen } from "../listen.ts";
 import { timestamp } from "../timestamp.ts";
 
 /** Options for the Spotify parser. */
