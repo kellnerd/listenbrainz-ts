@@ -55,10 +55,6 @@ The following parsers are available in the `listenbrainz/parser/*` submodules:
   - Makes use of the “offline” timestamp to detect extreme outliers where Spotify has only logged a stream as ended when the app was next opened.
   - Skipped listens can be detected by their `track_metadata.additional_info` attributes `skipped`, `reason_end` and a too short `duration_ms`.
 
-## elbisaur
-
-`elbisaur` is a CLI which can be used to submit and manage listens. [Learn more][elbisaur].
-
 [documentation]: https://jsr.io/@kellnerd/listenbrainz/doc
 [elbisaur]: https://github.com/kellnerd/elbisaur
 [MusicBrainz]: https://musicbrainz.org/
