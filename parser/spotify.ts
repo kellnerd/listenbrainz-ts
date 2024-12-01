@@ -37,6 +37,10 @@ export function* parseSpotifyExtendedHistory(
     // TODO: Add option to skip errors and log warnings
     if (!isSpotifyStream(stream)) {
       throw new TypeError(`Item at index ${index} is no Spotify stream`);
+    } else if (stream.spotify_episode_uri) {
+      // Podcast episodes are not supported by ListenBrainz
+      console.log(`Item at index ${index} is a podcast episode`);
+      continue;
     } else if (
       !(stream.master_metadata_track_name &&
         stream.master_metadata_album_artist_name)
