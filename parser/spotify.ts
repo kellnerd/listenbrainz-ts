@@ -11,6 +11,8 @@ import { timestamp } from "../timestamp.ts";
 export interface SpotifyParserOptions {
   /** Listens include additional info properties which might help with debugging. */
   includeDebugInfo?: boolean;
+  /** Hook which is called for an invalid Spotify stream item. */
+  onInvalidItem?: (item: SpotifyStream, index: number, reason: string) => void;
 }
 
 /**
@@ -34,18 +36,22 @@ export function* parseSpotifyExtendedHistory(
 
   let index = 0;
   for (const stream of json) {
-    // TODO: Add option to skip errors and log warnings
     if (!isSpotifyStream(stream)) {
       throw new TypeError(`Item at index ${index} is no Spotify stream`);
     } else if (stream.spotify_episode_uri) {
       // Podcast episodes are not supported by ListenBrainz
-      console.log(`Item at index ${index} is a podcast episode`);
+      options.onInvalidItem?.(stream, index, "Item is a podcast episode");
       continue;
     } else if (
       !(stream.master_metadata_track_name &&
         stream.master_metadata_album_artist_name)
     ) {
-      throw new TypeError(`Track at index ${index} has no artist and/or title`);
+      options.onInvalidItem?.(
+        stream,
+        index,
+        "Track has no artist and/or title",
+      );
+      continue;
     }
 
     const spotifyUrl = spotifyUriToUrl(stream.spotify_track_uri).href;
@@ -87,7 +93,7 @@ export function* parseSpotifyExtendedHistory(
       track_metadata: {
         artist_name: stream.master_metadata_album_artist_name,
         track_name: stream.master_metadata_track_name,
-        release_name: stream.master_metadata_album_album_name,
+        release_name: stream.master_metadata_album_album_name ?? undefined,
         additional_info: {
           duration_ms: stream.ms_played,
           music_service: "spotify.com",
@@ -133,11 +139,11 @@ export interface SpotifyStream {
   /** User agent (URL-encoded) used when streaming the track (e.g. a browser). */
   user_agent_decrypted: string | null;
   /** Name of the track. */
-  master_metadata_track_name: string;
+  master_metadata_track_name: string | null;
   /** Name of the artist, band or podcast. */
-  master_metadata_album_artist_name: string;
+  master_metadata_album_artist_name: string | null;
   /** Name of the album of the track. */
-  master_metadata_album_album_name: string;
+  master_metadata_album_album_name: string | null;
   /** Spotify track URI, in the form of `spotify:track:<base-62-id>`. */
   spotify_track_uri: string;
   /** Name of the episode of the podcast. */
