@@ -78,6 +78,9 @@ export function* parseSpotifyExtendedHistory(
     // Timestamp sometimes stored in milliseconds, convert those to seconds.
     if (offlineTime > 1e11) {
       offlineTime = Math.round(offlineTime / 1000);
+    } else if (offlineTime < spotifyLaunchTime) {
+      // Older exports may have a meaningless value of `1` (that is 1970), ignore it.
+      offlineTime = 0;
     }
 
     // Find outliers by calculating the delay between two alternative timestamps.
@@ -113,7 +116,7 @@ export function* parseSpotifyExtendedHistory(
       info.playing_stopped_date = stream.ts;
       info.playing_stopped_ts = endTime;
       info.offline = stream.offline;
-      info.offline_ts = offlineTime;
+      info.offline_ts = stream.offline_timestamp;
       info.offline_ts_delay = offlineTimeDelay;
     }
 
@@ -200,6 +203,9 @@ export function isSpotifyStream(json: any): json is SpotifyStream {
 export const spotifyUriPattern: URLPattern = new URLPattern(
   String.raw`spotify::type([a-z]+)\::id([A-Za-z0-9]+)`,
 );
+
+/** Timestamp of Spotify's launch, listens should be no older than that. */
+export const spotifyLaunchTime = timestamp("2008-10");
 
 /** Constructs a Spotify URL from the given Spotify URI. */
 export function spotifyUriToUrl(
