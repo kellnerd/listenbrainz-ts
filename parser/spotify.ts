@@ -205,7 +205,7 @@ export const spotifyUriPattern: URLPattern = new URLPattern(
 );
 
 /** Timestamp of Spotify's launch, listens should be no older than that. */
-export const spotifyLaunchTime = timestamp("2008-10");
+export const spotifyLaunchTime: number = timestamp("2008-10");
 
 /** Constructs a Spotify URL from the given Spotify URI. */
 export function spotifyUriToUrl(
