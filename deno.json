@@ -1,6 +1,6 @@
 {
   "name": "@kellnerd/listenbrainz",
-  "version": "0.9.0",
+  "version": "0.9.1",
   "exports": {
     ".": "./mod.ts",
     "./listen": "./listen.ts",
@@ -34,6 +34,7 @@
   },
   "tasks": {
     "build-docs": "deno doc --html --name=listenbrainz mod.ts listen.ts timestamp.ts parser/*.ts",
+    "bump": "bump -c 'chore: Release version ' -t v",
     "ok": "deno fmt --check && deno lint"
   }
 }
