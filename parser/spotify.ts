@@ -54,7 +54,6 @@ export function* parseSpotifyExtendedHistory(
       continue;
     }
 
-    const spotifyUrl = spotifyUriToUrl(stream.spotify_track_uri).href;
     const endTime = timestamp(stream.ts);
     const calculatedStartTime = Math.round(endTime - stream.ms_played / 1000);
 
@@ -100,8 +99,6 @@ export function* parseSpotifyExtendedHistory(
         additional_info: {
           duration_ms: stream.ms_played,
           music_service: "spotify.com",
-          spotify_id: spotifyUrl,
-          origin_url: spotifyUrl,
           // Additional fields for filtering, might be removed in a later version.
           reason_start: stream.reason_start,
           reason_end: stream.reason_end,
@@ -110,6 +107,13 @@ export function* parseSpotifyExtendedHistory(
         },
       },
     };
+
+    if (stream.spotify_track_uri) {
+      const spotifyUrl = spotifyUriToUrl(stream.spotify_track_uri).href;
+      const info = listen.track_metadata.additional_info!;
+      info.spotify_id = spotifyUrl;
+      info.origin_url = spotifyUrl;
+    }
 
     if (options.includeDebugInfo) {
       const info = listen.track_metadata.additional_info!;
@@ -148,7 +152,7 @@ export interface SpotifyStream {
   /** Name of the album of the track. */
   master_metadata_album_album_name: string | null;
   /** Spotify track URI, in the form of `spotify:track:<base-62-id>`. */
-  spotify_track_uri: string;
+  spotify_track_uri: string | null;
   /** Name of the episode of the podcast. */
   episode_name: string | null;
   /** Name of the show of the podcast. */
