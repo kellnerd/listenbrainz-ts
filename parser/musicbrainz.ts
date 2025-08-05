@@ -5,7 +5,7 @@
  */
 
 import type { Listen } from "../listen.ts";
-import type { Release } from "@kellnerd/musicbrainz";
+import type { Release } from "@kellnerd/musicbrainz/api-types";
 import { joinArtistCredit } from "@kellnerd/musicbrainz/utils/artist";
 import {
   filterTrackRange,
